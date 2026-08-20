@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_4"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="FinanzApp"
+                  exporterVersion="1.0">
+
+  <bpmn:collaboration id="Collaboration_4">
+    <bpmn:participant id="Participant_TipUser" name="Estudiante" processRef="Process_Tip_User" />
+    <bpmn:participant id="Participant_TipBackend" name="FinanzApp Backend" processRef="Process_Tip_System" />
+  </bpmn:collaboration>
+
+  <!-- ==================== PROCESO: CONSEJOS DE IA (US4) ==================== -->
+  <bpmn:process id="Process_Tip_User" name="Consejos IA" isExecutable="false">
+
+    <bpmn:startEvent id="Start_OpenTips" name="Abrir sección de consejos">
+      <bpmn:outgoing>Flow_T01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_RequestTips" name="Solicitar consejos&#10;(GET /api/tips)">
+      <bpmn:incoming>Flow_T01</bpmn:incoming>
+      <bpmn:outgoing>Flow_T02</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Verificar datos suficientes -->
+    <bpmn:exclusiveGateway id="GW_SufficientData" name="¿Datos suficientes?&#10;(≥ 2 meses de historial)">
+      <bpmn:incoming>Flow_T02</bpmn:incoming>
+      <bpmn:outgoing>Flow_T03a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_T03b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- Sin datos suficientes -->
+    <bpmn:task id="Task_InsufficientData" name="Mostrar mensaje:&#10;'Necesitamos más datos para&#10;darte consejos personalizados'">
+      <bpmn:incoming>Flow_T03b</bpmn:incoming>
+      <bpmn:outgoing>Flow_T04</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Con datos suficientes -->
+    <bpmn:task id="Task_ViewTips" name="Ver lista de consejos&#10;(cada uno en tarjeta amigable)">
+      <bpmn:incoming>Flow_T03a</bpmn:incoming>
+      <bpmn:outgoing>Flow_T05</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Contenido del consejo -->
+    <bpmn:task id="Task_ReadTip" name="Leer consejo:&#10;números específicos, categoría, tendencia">
+      <bpmn:incoming>Flow_T05</bpmn:incoming>
+      <bpmn:outgoing>Flow_T06</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Feedback -->
+    <bpmn:exclusiveGateway id="GW_Feedback" name="¿Marcar consejo?">
+      <bpmn:incoming>Flow_T06</bpmn:incoming>
+      <bpmn:outgoing>Flow_T07a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_T07b</bpmn:outgoing>
+      <bpmn:outgoing>Flow_T07c</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_MarkUseful" name="Marcar como 'Útil'&#10;(guardar feedback)">
+      <bpmn:incoming>Flow_T07a</bpmn:incoming>
+      <bpmn:outgoing>Flow_T08</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_MarkNotUseful" name="Marcar como 'No útil'&#10;(guardar feedback para mejorar)">
+      <bpmn:incoming>Flow_T07b</bpmn:incoming>
+      <bpmn:outgoing>Flow_T08</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Más consejos -->
+    <bpmn:exclusiveGateway id="GW_MoreTips" name="¿Más consejos?">
+      <bpmn:incoming>Flow_T08</bpmn:incoming>
+      <bpmn:outgoing>Flow_T09a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_T09b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_NextTip" name="Siguiente consejo">
+      <bpmn:incoming>Flow_T09a</bpmn:incoming>
+      <bpmn:outgoing>Flow_T10</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_TipsDone" name="Consejos revisados">
+      <bpmn:incoming>Flow_T04</bpmn:incoming>
+      <bpmn:incoming>Flow_T09b</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- Flujos -->
+    <bpmn:sequenceFlow id="Flow_T01" sourceRef="Start_OpenTips" targetRef="Task_RequestTips" />
+    <bpmn:sequenceFlow id="Flow_T02" sourceRef="Task_RequestTips" targetRef="GW_SufficientData" />
+    <bpmn:sequenceFlow id="Flow_T03a" name="Sí" sourceRef="GW_SufficientData" targetRef="Task_ViewTips" />
+    <bpmn:sequenceFlow id="Flow_T03b" name="No" sourceRef="GW_SufficientData" targetRef="Task_InsufficientData" />
+    <bpmn:sequenceFlow id="Flow_T04" sourceRef="Task_InsufficientData" targetRef="End_TipsDone" />
+    <bpmn:sequenceFlow id="Flow_T05" sourceRef="Task_ViewTips" targetRef="Task_ReadTip" />
+    <bpmn:sequenceFlow id="Flow_T06" sourceRef="Task_ReadTip" targetRef="GW_Feedback" />
+    <bpmn:sequenceFlow id="Flow_T07a" name="Útil" sourceRef="GW_Feedback" targetRef="Task_MarkUseful" />
+    <bpmn:sequenceFlow id="Flow_T07b" name="No útil" sourceRef="GW_Feedback" targetRef="Task_MarkNotUseful" />
+    <bpmn:sequenceFlow id="Flow_T07c" name="Omitir" sourceRef="GW_Feedback" targetRef="GW_MoreTips" />
+    <bpmn:sequenceFlow id="Flow_T08" sourceRef="Task_MarkUseful" targetRef="GW_MoreTips" />
+    <bpmn:sequenceFlow id="Flow_T08" sourceRef="Task_MarkNotUseful" targetRef="GW_MoreTips" />
+    <bpmn:sequenceFlow id="Flow_T09a" name="Sí" sourceRef="GW_MoreTips" targetRef="Task_NextTip" />
+    <bpmn:sequenceFlow id="Flow_T09b" name="No" sourceRef="GW_MoreTips" targetRef="End_TipsDone" />
+    <bpmn:sequenceFlow id="Flow_T10" sourceRef="Task_NextTip" targetRef="Task_ReadTip" />
+
+  </bpmn:process>
+
+  <!-- ==================== PROCESO BACKEND ==================== -->
+  <bpmn:process id="Process_Tip_System" name="Backend Tip Generation" isExecutable="false">
+
+    <bpmn:task id="Task_AnalyzeExpenses" name="Analizar patrones de gasto&#10;(comparar meses, categorías, tendencia)" />
+    <bpmn:task id="Task_GenerateTip" name="Generar consejo con datos reales&#10;('Gastaste $X en Y, Z% más que el mes pasado')" />
+    <bpmn:task id="Task_StoreTip" name="Guardar en tabla AITip&#10;(contenido + UserId + fecha)" />
+
+  </bpmn:process>
+
+  <!-- ==================== DIAGRAMA ==================== -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_4">
+    <bpmndi:BPMNPlane id="BPMNPlane_4" bpmnElement="Collaboration_4">
+
+      <bpmndi:BPMNShape id="Shape_Participant_TipUser" bpmnElement="Participant_TipUser" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1200" height="480" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Participant_TipBackend" bpmnElement="Participant_TipBackend" isHorizontal="true">
+        <dc:Bounds x="160" y="580" width="1200" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="Start_OpenTips">
+        <dc:Bounds x="200" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_RequestTips" bpmnElement="Task_RequestTips">
+        <dc:Bounds x="290" y="240" width="150" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_GW_Data" bpmnElement="GW_SufficientData" isMarkerVisible="true">
+        <dc:Bounds x="485" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_InsufficientData" bpmnElement="Task_InsufficientData">
+        <dc:Bounds x="460" y="360" width="200" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_ViewTips" bpmnElement="Task_ViewTips">
+        <dc:Bounds x="580" y="240" width="160" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_ReadTip" bpmnElement="Task_ReadTip">
+        <dc:Bounds x="790" y="240" width="160" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_GW_Feedback" bpmnElement="GW_Feedback" isMarkerVisible="true">
+        <dc:Bounds x="995" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_MarkUseful" bpmnElement="Task_MarkUseful">
+        <dc:Bounds x="1000" y="160" width="140" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_MarkNotUseful" bpmnElement="Task_MarkNotUseful">
+        <dc:Bounds x="1000" y="340" width="160" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_GW_More" bpmnElement="GW_MoreTips" isMarkerVisible="true">
+        <dc:Bounds x="1135" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_NextTip" bpmnElement="Task_NextTip">
+        <dc:Bounds x="1130" y="340" width="120" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_End" bpmnElement="End_TipsDone">
+        <dc:Bounds x="1222" y="272" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <!-- Sequence Flows -->
+      <bpmndi:BPMNEdge id="Edge_Flow_T01" bpmnElement="Flow_T01">
+        <di:waypoint x="236" y="280" />
+        <di:waypoint x="290" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T02" bpmnElement="Flow_T02">
+        <di:waypoint x="440" y="280" />
+        <di:waypoint x="485" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T03a" bpmnElement="Flow_T03a">
+        <di:waypoint x="535" y="280" />
+        <di:waypoint x="580" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T03b" bpmnElement="Flow_T03b">
+        <di:waypoint x="510" y="305" />
+        <di:waypoint x="510" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T04" bpmnElement="Flow_T04">
+        <di:waypoint x="660" y="400" />
+        <di:waypoint x="1222" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T05" bpmnElement="Flow_T05">
+        <di:waypoint x="740" y="280" />
+        <di:waypoint x="790" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T06" bpmnElement="Flow_T06">
+        <di:waypoint x="950" y="280" />
+        <di:waypoint x="995" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T07a" bpmnElement="Flow_T07a">
+        <di:waypoint x="1020" y="255" />
+        <di:waypoint x="1020" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T07b" bpmnElement="Flow_T07b">
+        <di:waypoint x="1020" y="305" />
+        <di:waypoint x="1020" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T07c" bpmnElement="Flow_T07c">
+        <di:waypoint x="1045" y="280" />
+        <di:waypoint x="1135" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T08a" bpmnElement="Flow_T08" sourceRef="Task_MarkUseful">
+        <di:waypoint x="1140" y="220" />
+        <di:waypoint x="1160" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T08b" bpmnElement="Flow_T08" sourceRef="Task_MarkNotUseful">
+        <di:waypoint x="1160" y="340" />
+        <di:waypoint x="1160" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T09a" bpmnElement="Flow_T09a">
+        <di:waypoint x="1160" y="305" />
+        <di:waypoint x="1160" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T09b" bpmnElement="Flow_T09b">
+        <di:waypoint x="1185" y="280" />
+        <di:waypoint x="1222" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T10" bpmnElement="Flow_T10">
+        <di:waypoint x="1190" y="340" />
+        <di:waypoint x="1190" y="380" />
+        <di:waypoint x="870" y="380" />
+        <di:waypoint x="870" y="320" />
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>

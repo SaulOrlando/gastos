@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_3"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="FinanzApp"
+                  exporterVersion="1.0">
+
+  <bpmn:collaboration id="Collaboration_3">
+    <bpmn:participant id="Participant_User" name="Estudiante" processRef="Process_Expense_User" />
+    <bpmn:participant id="Participant_Backend" name="FinanzApp Backend" processRef="Process_Expense_System" />
+  </bpmn:collaboration>
+
+  <!-- ==================== PROCESO: REGISTRO DE GASTOS (US3) ==================== -->
+  <bpmn:process id="Process_Expense_User" name="Registro de Gasto" isExecutable="false">
+
+    <bpmn:startEvent id="Start_NewExpense" name="Presionar 'Registrar Gasto'">
+      <bpmn:outgoing>Flow_E01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_FillForm" name="Completar formulario:&#10;monto + categoría + fecha + nota">
+      <bpmn:incoming>Flow_E01</bpmn:incoming>
+      <bpmn:outgoing>Flow_E02</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_SubmitExpense" name="Enviar gasto">
+      <bpmn:incoming>Flow_E02</bpmn:incoming>
+      <bpmn:outgoing>Flow_E03</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Validación -->
+    <bpmn:exclusiveGateway id="GW_ExpenseValid" name="¿Datos válidos?&#10;(monto > 0, campos requeridos)">
+      <bpmn:incoming>Flow_E03</bpmn:incoming>
+      <bpmn:outgoing>Flow_E04a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_E04b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- Error de validación -->
+    <bpmn:task id="Task_ValidationError" name="Mostrar mensaje de error&#10;(amigable, en español)">
+      <bpmn:incoming>Flow_E04b</bpmn:incoming>
+      <bpmn:outgoing>Flow_E05</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Guardar exitoso -->
+    <bpmn:task id="Task_SaveSuccess" name="Guardar gasto&#10;(mostrar confirmación)">
+      <bpmn:incoming>Flow_E04a</bpmn:incoming>
+      <bpmn:outgoing>Flow_E06</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Actualizar dashboard -->
+    <bpmn:task id="Task_RefreshDashboard" name="Actualizar dashboard&#10;(totales + gráficas + saldo)">
+      <bpmn:incoming>Flow_E06</bpmn:incoming>
+      <bpmn:outgoing>Flow_E07</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Ver lista -->
+    <bpmn:exclusiveGateway id="GW_Action" name="¿Qué hacer?">
+      <bpmn:incoming>Flow_E07</bpmn:incoming>
+      <bpmn:outgoing>Flow_E08a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_E08b</bpmn:outgoing>
+      <bpmn:outgoing>Flow_E08c</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- Ver lista de gastos -->
+    <bpmn:task id="Task_ViewExpenses" name="Ver lista de gastos">
+      <bpmn:incoming>Flow_E08a</bpmn:incoming>
+      <bpmn:outgoing>Flow_E09</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Editar gasto -->
+    <bpmn:task id="Task_EditExpense" name="Seleccionar gasto → Editar&#10;(monto, categoría, fecha, nota)">
+      <bpmn:incoming>Flow_E08b</bpmn:incoming>
+      <bpmn:outgoing>Flow_E10</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Eliminar gasto -->
+    <bpmn:task id="Task_DeleteConfirm" name="Eliminar gasto&#10;(confirmación requerida)">
+      <bpmn:incoming>Flow_E08c</bpmn:incoming>
+      <bpmn:outgoing>Flow_E11</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Eliminar confirmado -->
+    <bpmn:exclusiveGateway id="GW_ConfirmDelete" name="¿Confirmar?">
+      <bpmn:incoming>Flow_E11</bpmn:incoming>
+      <bpmn:outgoing>Flow_E12a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_E12b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_DeleteExecuted" name="Gasto eliminado&#10;(actualizar dashboard)">
+      <bpmn:incoming>Flow_E12a</bpmn:incoming>
+      <bpmn:outgoing>Flow_E13</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_EditSaved" name="Guardar cambios&#10;(actualizar dashboard)">
+      <bpmn:incoming>Flow_E10</bpmn:incoming>
+      <bpmn:outgoing>Flow_E13</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Final" name="¿Seguir operando?">
+      <bpmn:incoming>Flow_E09</bpmn:incoming>
+      <bpmn:incoming>Flow_E13</bpmn:incoming>
+      <bpmn:outgoing>Flow_E14a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_E14b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_NewExpense" name="Registrar otro gasto">
+      <bpmn:incoming>Flow_E14a</bpmn:incoming>
+      <bpmn:outgoing>Flow_E15</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_ExpenseFlow" name="Operación completada">
+      <bpmn:incoming>Flow_E14b</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- Flujos -->
+    <bpmn:sequenceFlow id="Flow_E01" sourceRef="Start_NewExpense" targetRef="Task_FillForm" />
+    <bpmn:sequenceFlow id="Flow_E02" sourceRef="Task_FillForm" targetRef="Task_SubmitExpense" />
+    <bpmn:sequenceFlow id="Flow_E03" sourceRef="Task_SubmitExpense" targetRef="GW_ExpenseValid" />
+    <bpmn:sequenceFlow id="Flow_E04a" name="Válido" sourceRef="GW_ExpenseValid" targetRef="Task_SaveSuccess" />
+    <bpmn:sequenceFlow id="Flow_E04b" name="Inválido" sourceRef="GW_ExpenseValid" targetRef="Task_ValidationError" />
+    <bpmn:sequenceFlow id="Flow_E05" sourceRef="Task_ValidationError" targetRef="Task_FillForm" />
+    <bpmn:sequenceFlow id="Flow_E06" sourceRef="Task_SaveSuccess" targetRef="Task_RefreshDashboard" />
+    <bpmn:sequenceFlow id="Flow_E07" sourceRef="Task_RefreshDashboard" targetRef="GW_Action" />
+    <bpmn:sequenceFlow id="Flow_E08a" name="Ver lista" sourceRef="GW_Action" targetRef="Task_ViewExpenses" />
+    <bpmn:sequenceFlow id="Flow_E08b" name="Editar" sourceRef="GW_Action" targetRef="Task_EditExpense" />
+    <bpmn:sequenceFlow id="Flow_E08c" name="Eliminar" sourceRef="GW_Action" targetRef="Task_DeleteConfirm" />
+    <bpmn:sequenceFlow id="Flow_E09" sourceRef="Task_ViewExpenses" targetRef="GW_Final" />
+    <bpmn:sequenceFlow id="Flow_E10" sourceRef="Task_EditExpense" targetRef="Task_EditSaved" />
+    <bpmn:sequenceFlow id="Flow_E11" sourceRef="Task_DeleteConfirm" targetRef="GW_ConfirmDelete" />
+    <bpmn:sequenceFlow id="Flow_E12a" name="Sí" sourceRef="GW_ConfirmDelete" targetRef="Task_DeleteExecuted" />
+    <bpmn:sequenceFlow id="Flow_E12b" name="No" sourceRef="GW_ConfirmDelete" targetRef="Task_ViewExpenses" />
+    <bpmn:sequenceFlow id="Flow_E13" sourceRef="Task_DeleteExecuted" targetRef="GW_Final" />
+    <bpmn:sequenceFlow id="Flow_E14a" name="Otro gasto" sourceRef="GW_Final" targetRef="Task_NewExpense" />
+    <bpmn:sequenceFlow id="Flow_E14b" name="Finalizar" sourceRef="GW_Final" targetRef="End_ExpenseFlow" />
+    <bpmn:sequenceFlow id="Flow_E15" sourceRef="Task_NewExpense" targetRef="Task_FillForm" />
+
+  </bpmn:process>
+
+  <!-- ==================== PROCESO BACKEND ==================== -->
+  <bpmn:process id="Process_Expense_System" name="Backend Expense API" isExecutable="false">
+    <bpmn:task id="Task_API_Create" name="POST /api/expenses&#10;(validar, guardar)" />
+    <bpmn:task id="Task_API_Update" name="PUT /api/expenses/{id}&#10;(actualizar)" />
+    <bpmn:task id="Task_API_Delete" name="DELETE /api/expenses/{id}&#10;(eliminar)" />
+    <bpmn:task id="Task_API_Dashboard" name="GET /api/dashboard&#10;(recalcular totales)" />
+  </bpmn:process>
+
+  <!-- ==================== DIAGRAMA ==================== -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_3">
+    <bpmndi:BPMNPlane id="BPMNPlane_3" bpmnElement="Collaboration_3">
+
+      <bpmndi:BPMNShape id="Shape_Participant_User" bpmnElement="Participant_User" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1400" height="520" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Participant_Backend" bpmnElement="Participant_Backend" isHorizontal="true">
+        <dc:Bounds x="160" y="620" width="1400" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="Start_NewExpense">
+        <dc:Bounds x="200" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_FillForm" bpmnElement="Task_FillForm">
+        <dc:Bounds x="290" y="260" width="150" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_SubmitExpense" bpmnElement="Task_SubmitExpense">
+        <dc:Bounds x="490" y="260" width="120" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_GW_Valid" bpmnElement="GW_ExpenseValid" isMarkerVisible="true">
+        <dc:Bounds x="655" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_ValidationError" bpmnElement="Task_ValidationError">
+        <dc:Bounds x="630" y="380" width="160" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_SaveSuccess" bpmnElement="Task_SaveSuccess">
+        <dc:Bounds x="760" y="260" width="140" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_RefreshDashboard" bpmnElement="Task_RefreshDashboard">
+        <dc:Bounds x="950" y="260" width="150" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_GW_Action" bpmnElement="GW_Action" isMarkerVisible="true">
+        <dc:Bounds x="1145" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_ViewExpenses" bpmnElement="Task_ViewExpenses">
+        <dc:Bounds x="1120" y="160" width="150" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_EditExpense" bpmnElement="Task_EditExpense">
+        <dc:Bounds x="1120" y="340" width="170" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_DeleteConfirm" bpmnElement="Task_DeleteConfirm">
+        <dc:Bounds x="1120" y="430" width="170" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_GW_ConfirmDelete" bpmnElement="GW_ConfirmDelete" isMarkerVisible="true">
+        <dc:Bounds x="1335" y="445" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_DeleteExecuted" bpmnElement="Task_DeleteExecuted">
+        <dc:Bounds x="1330" y="380" width="150" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_EditSaved" bpmnElement="Task_EditSaved">
+        <dc:Bounds x="1330" y="290" width="150" height="60" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_GW_Final" bpmnElement="GW_Final" isMarkerVisible="true">
+        <dc:Bounds x="1400" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_NewExpense" bpmnElement="Task_NewExpense">
+        <dc:Bounds x="1480" y="240" width="120" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_End" bpmnElement="End_ExpenseFlow">
+        <dc:Bounds x="1502" y="112" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <!-- Sequence Flows -->
+      <bpmndi:BPMNEdge id="Edge_Flow_E01" bpmnElement="Flow_E01">
+        <di:waypoint x="236" y="300" />
+        <di:waypoint x="290" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E02" bpmnElement="Flow_E02">
+        <di:waypoint x="440" y="300" />
+        <di:waypoint x="490" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E03" bpmnElement="Flow_E03">
+        <di:waypoint x="610" y="300" />
+        <di:waypoint x="655" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E04a" bpmnElement="Flow_E04a">
+        <di:waypoint x="705" y="300" />
+        <di:waypoint x="760" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E04b" bpmnElement="Flow_E04b">
+        <di:waypoint x="680" y="325" />
+        <di:waypoint x="680" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E05" bpmnElement="Flow_E05">
+        <di:waypoint x="630" y="410" />
+        <di:waypoint x="440" y="410" />
+        <di:waypoint x="440" y="340" />
+        <di:waypoint x="365" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E06" bpmnElement="Flow_E06">
+        <di:waypoint x="900" y="300" />
+        <di:waypoint x="950" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E07" bpmnElement="Flow_E07">
+        <di:waypoint x="1100" y="300" />
+        <di:waypoint x="1145" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E08a" bpmnElement="Flow_E08a">
+        <di:waypoint x="1170" y="275" />
+        <di:waypoint x="1170" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E08b" bpmnElement="Flow_E08b">
+        <di:waypoint x="1195" y="300" />
+        <di:waypoint x="1290" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E08c" bpmnElement="Flow_E08c">
+        <di:waypoint x="1170" y="325" />
+        <di:waypoint x="1170" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E09" bpmnElement="Flow_E09">
+        <di:waypoint x="1270" y="190" />
+        <di:waypoint x="1400" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E10" bpmnElement="Flow_E10">
+        <di:waypoint x="1290" y="370" />
+        <di:waypoint x="1330" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E11" bpmnElement="Flow_E11">
+        <di:waypoint x="1290" y="460" />
+        <di:waypoint x="1335" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E12a" bpmnElement="Flow_E12a">
+        <di:waypoint x="1360" y="445" />
+        <di:waypoint x="1360" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E12b" bpmnElement="Flow_E12b">
+        <di:waypoint x="1385" y="470" />
+        <di:waypoint x="1460" y="470" />
+        <di:waypoint x="1460" y="220" />
+        <di:waypoint x="1270" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E13" bpmnElement="Flow_E13">
+        <di:waypoint x="1360" y="380" />
+        <di:waypoint x="1360" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E14a" bpmnElement="Flow_E14a">
+        <di:waypoint x="1425" y="225" />
+        <di:waypoint x="1480" y="265" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E14b" bpmnElement="Flow_E14b">
+        <di:waypoint x="1425" y="175" />
+        <di:waypoint x="1502" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_E15" bpmnElement="Flow_E15">
+        <di:waypoint x="1540" y="240" />
+        <di:waypoint x="1540" y="160" />
+        <di:waypoint x="200" y="160" />
+        <di:waypoint x="200" y="282" />
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_1"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="FinanzApp"
+                  exporterVersion="1.0">
+
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_Visitor" name="Visitante / Estudiante" processRef="Process_Landing" />
+    <bpmn:participant id="Participant_System" name="FinanzApp" processRef="Process_System" />
+  </bpmn:collaboration>
+
+  <!-- ==================== PROCESO: LANDING Y REGISTRO (US1) ==================== -->
+  <bpmn:process id="Process_Landing" name="Landing Page y Registro" isExecutable="false">
+
+    <!-- Inicio -->
+    <bpmn:startEvent id="Start_VisitLanding" name="Visita landing page">
+      <bpmn:outgoing>Flow_001</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- Paso 1: Ver landing -->
+    <bpmn:task id="Task_ViewLanding" name="Ver página de inicio&#10;(explicación, beneficios, CTA)">
+      <bpmn:incoming>Flow_001</bpmn:incoming>
+      <bpmn:outgoing>Flow_002</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Decisión: ¿Tiene cuenta? -->
+    <bpmn:exclusiveGateway id="GW_HasAccount" name="¿Ya tiene cuenta?">
+      <bpmn:incoming>Flow_002</bpmn:incoming>
+      <bpmn:outgoing>Flow_003a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_003b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- Rama: Tiene cuenta → Login -->
+    <bpmn:task id="Task_Login" name="Iniciar sesión&#10;(email + contraseña)">
+      <bpmn:incoming>Flow_003a</bpmn:incoming>
+      <bpmn:outgoing>Flow_004</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Rama: No tiene cuenta → Registro -->
+    <bpmn:task id="Task_RegisterForm" name="Completar formulario de registro&#10;(nombre, email, contraseña, moneda)">
+      <bpmn:incoming>Flow_003b</bpmn:incoming>
+      <bpmn:outgoing>Flow_005</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Envío del formulario -->
+    <bpmn:task id="Task_SubmitRegistration" name="Enviar registro">
+      <bpmn:incoming>Flow_005</bpmn:incoming>
+      <bpmn:outgoing>Flow_006</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Validación -->
+    <bpmn:exclusiveGateway id="GW_Validation" name="¿Datos válidos?">
+      <bpmn:incoming>Flow_006</bpmn:incoming>
+      <bpmn:outgoing>Flow_007a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_007b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- Email duplicado -->
+    <bpmn:task id="Task_DuplicateEmail" name="Mostrar mensaje de error&#10;('¿Ya tienes cuenta? Inicia sesión')">
+      <bpmn:incoming>Flow_007b</bpmn:incoming>
+      <bpmn:outgoing>Flow_008</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Autenticación exitosa -->
+    <bpmn:task id="Task_AuthSuccess" name="Autenticar usuario&#10;(establecer cookie de sesión)">
+      <bpmn:incoming>Flow_007a</bpmn:incoming>
+      <bpmn:incoming>Flow_004</bpmn:incoming>
+      <bpmn:outgoing>Flow_009</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Dashboard vacío -->
+    <bpmn:task id="Task_EmptyDashboard" name="Mostrar dashboard vacío&#10;(guía de primeros pasos)">
+      <bpmn:incoming>Flow_009</bpmn:incoming>
+      <bpmn:outgoing>Flow_010</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Fin -->
+    <bpmn:endEvent id="End_Dashboard" name="Dashboard accesible">
+      <bpmn:incoming>Flow_010</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- Flujos -->
+    <bpmn:sequenceFlow id="Flow_001" sourceRef="Start_VisitLanding" targetRef="Task_ViewLanding" />
+    <bpmn:sequenceFlow id="Flow_002" sourceRef="Task_ViewLanding" targetRef="GW_HasAccount" />
+    <bpmn:sequenceFlow id="Flow_003a" name="Sí" sourceRef="GW_HasAccount" targetRef="Task_Login" />
+    <bpmn:sequenceFlow id="Flow_003b" name="No" sourceRef="GW_HasAccount" targetRef="Task_RegisterForm" />
+    <bpmn:sequenceFlow id="Flow_004" sourceRef="Task_Login" targetRef="Task_AuthSuccess" />
+    <bpmn:sequenceFlow id="Flow_005" sourceRef="Task_RegisterForm" targetRef="Task_SubmitRegistration" />
+    <bpmn:sequenceFlow id="Flow_006" sourceRef="Task_SubmitRegistration" targetRef="GW_Validation" />
+    <bpmn:sequenceFlow id="Flow_007a" name="Válido" sourceRef="GW_Validation" targetRef="Task_AuthSuccess" />
+    <bpmn:sequenceFlow id="Flow_007b" name="Email duplicado" sourceRef="GW_Validation" targetRef="Task_DuplicateEmail" />
+    <bpmn:sequenceFlow id="Flow_008" sourceRef="Task_DuplicateEmail" targetRef="Task_RegisterForm" />
+    <bpmn:sequenceFlow id="Flow_009" sourceRef="Task_AuthSuccess" targetRef="Task_EmptyDashboard" />
+    <bpmn:sequenceFlow id="Flow_010" sourceRef="Task_EmptyDashboard" targetRef="End_Dashboard" />
+
+  </bpmn:process>
+
+  <!-- ==================== PROCESO SISTEMático ==================== -->
+  <bpmn:process id="Process_System" name="Procesos del Sistema" isExecutable="false">
+    <bpmn:startEvent id="Start_System" name="Sistema activo" />
+  </bpmn:process>
+
+  <!-- ==================== DIAGRAMA ==================== -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+
+      <bpmndi:BPMNShape id="Shape_Participant_Visitor" bpmnElement="Participant_Visitor" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="900" height="400" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Participant_System" bpmnElement="Participant_System" isHorizontal="true">
+        <dc:Bounds x="160" y="520" width="900" height="80" />
+      </bpmndi:BPMNShape>
+
+      <!-- Start Event -->
+      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="Start_VisitLanding">
+        <dc:Bounds x="200" y="242" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="180" y="285" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- Task: View Landing -->
+      <bpmndi:BPMNShape id="Shape_ViewLanding" bpmnElement="Task_ViewLanding">
+        <dc:Bounds x="290" y="220" width="120" height="80" />
+      </bpmndi:BPMNShape>
+
+      <!-- Gateway: Has Account -->
+      <bpmndi:BPMNShape id="Shape_GW_HasAccount" bpmnElement="GW_HasAccount" isMarkerVisible="true">
+        <dc:Bounds x="465" y="235" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="448" y="292" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- Task: Login -->
+      <bpmndi:BPMNShape id="Shape_Login" bpmnElement="Task_Login">
+        <dc:Bounds x="560" y="160" width="120" height="80" />
+      </bpmndi:BPMNShape>
+
+      <!-- Task: Register Form -->
+      <bpmndi:BPMNShape id="Shape_RegisterForm" bpmnElement="Task_RegisterForm">
+        <dc:Bounds x="560" y="300" width="120" height="80" />
+      </bpmndi:BPMNShape>
+
+      <!-- Task: Submit Registration -->
+      <bpmndi:BPMNShape id="Shape_SubmitRegistration" bpmnElement="Task_SubmitRegistration">
+        <dc:Bounds x="720" y="300" width="120" height="80" />
+      </bpmndi:BPMNShape>
+
+      <!-- Gateway: Validation -->
+      <bpmndi:BPMNShape id="Shape_GW_Validation" bpmnElement="GW_Validation" isMarkerVisible="true">
+        <dc:Bounds x="885" y="315" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="868" y="372" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- Task: Auth Success -->
+      <bpmndi:BPMNShape id="Shape_AuthSuccess" bpmnElement="Task_AuthSuccess">
+        <dc:Bounds x="560" y="80" width="120" height="80" />
+      </bpmndi:BPMNShape>
+
+      <!-- Task: Duplicate Email -->
+      <bpmndi:BPMNShape id="Shape_DuplicateEmail" bpmnElement="Task_DuplicateEmail">
+        <dc:Bounds x="860" y="160" width="120" height="80" />
+      </bpmndi:BPMNShape>
+
+      <!-- Task: Empty Dashboard -->
+      <bpmndi:BPMNShape id="Shape_EmptyDashboard" bpmnElement="Task_EmptyDashboard">
+        <dc:Bounds x="720" y="80" width="120" height="80" />
+      </bpmndi:BPMNShape>
+
+      <!-- End Event -->
+      <bpmndi:BPMNShape id="Shape_End" bpmnElement="End_Dashboard">
+        <dc:Bounds x="902" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="884" y="145" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- Sequence Flows -->
+      <bpmndi:BPMNEdge id="Edge_Flow_001" bpmnElement="Flow_001">
+        <di:waypoint x="236" y="260" />
+        <di:waypoint x="290" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_002" bpmnElement="Flow_002">
+        <di:waypoint x="410" y="260" />
+        <di:waypoint x="465" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_003a" bpmnElement="Flow_003a">
+        <di:waypoint x="490" y="235" />
+        <di:waypoint x="490" y="200" />
+        <di:waypoint x="560" y="200" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="510" y="210" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_003b" bpmnElement="Flow_003b">
+        <di:waypoint x="490" y="285" />
+        <di:waypoint x="490" y="340" />
+        <di:waypoint x="560" y="340" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="510" y="350" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_004" bpmnElement="Flow_004">
+        <di:waypoint x="620" y="160" />
+        <di:waypoint x="620" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_005" bpmnElement="Flow_005">
+        <di:waypoint x="680" y="340" />
+        <di:waypoint x="720" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_006" bpmnElement="Flow_006">
+        <di:waypoint x="840" y="340" />
+        <di:waypoint x="885" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_007a" bpmnElement="Flow_007a">
+        <di:waypoint x="910" y="315" />
+        <di:waypoint x="910" y="120" />
+        <di:waypoint x="680" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="920" y="210" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_007b" bpmnElement="Flow_007b">
+        <di:waypoint x="935" y="315" />
+        <di:waypoint x="935" y="240" />
+        <di:waypoint x="980" y="240" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="945" y="270" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_008" bpmnElement="Flow_008">
+        <di:waypoint x="860" y="200" />
+        <di:waypoint x="840" y="200" />
+        <di:waypoint x="840" y="340" />
+        <di:waypoint x="680" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_009" bpmnElement="Flow_009">
+        <di:waypoint x="680" y="120" />
+        <di:waypoint x="720" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_010" bpmnElement="Flow_010">
+        <di:waypoint x="840" y="120" />
+        <di:waypoint x="902" y="120" />
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>

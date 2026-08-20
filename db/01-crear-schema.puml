@@ -1,0 +1,201 @@
+@startuml FinanzApp_EsquemaDB
+!theme cerulean
+
+title FinanzApp Estudiantil - Diagrama de Base de Datos\nMotor: SQL Server | FinanzAppDB
+
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+skinparam classFontSize 13
+skinparam classAttributeFontSize 11
+skinparam defaultFontName Segoe UI
+
+' ============================================================
+' TABLA: AspNetUsers (extiende IdentityUser)
+' ============================================================
+class AspNetUsers <<Identity>> #E8F5E9 {
+    {static} **Id** : NVARCHAR(128) <<PK>>
+    --
+    UserName : NVARCHAR(256)
+    Email : NVARCHAR(256)
+    EmailConfirmed : BIT
+    PasswordHash : NVARCHAR(MAX)
+    SecurityStamp : NVARCHAR(MAX)
+    PhoneNumber : NVARCHAR(MAX)
+    PhoneNumberConfirmed : BIT
+    TwoFactorEnabled : BIT
+    LockoutEnd : DATETIMEOFFSET
+    LockoutEnabled : BIT
+    AccessFailedCount : INT
+    --
+    {static} **FullName** : NVARCHAR(100) <<NN>>
+    {static} **Currency** : NVARCHAR(3) <<NN, default='MXN'>>
+    MonthlyBudget : DECIMAL(18,2)
+    BudgetMonth : INT
+    BudgetYear : INT
+    CreatedAt : DATETIME2 <<NN>>
+}
+
+' ============================================================
+' TABLA: Expenses
+' ============================================================
+class Expenses #E3F2FD {
+    {static} **Id** : INT <<PK, IDENTITY>>
+    --
+    {static} **UserId** : NVARCHAR(128) <<FK>>
+    {static} **Amount** : DECIMAL(18,2) <<NN, CHECK>0>>
+    {static} **Category** : INT <<NN, ENUM>>
+    {static} **Date** : DATETIME2 <<NN>>
+    Note : NVARCHAR(500)
+    CreatedAt : DATETIME2
+    UpdatedAt : DATETIME2
+}
+
+' ============================================================
+' TABLA: SavingsGoals
+' ============================================================
+class SavingsGoals #FFF8E1 {
+    {static} **Id** : INT <<PK, IDENTITY>>
+    --
+    {static} **UserId** : NVARCHAR(128) <<FK>>
+    {static} **Name** : NVARCHAR(100) <<NN>>
+    {static} **TargetAmount** : DECIMAL(18,2) <<NN, CHECK>0>>
+    {static} **Deadline** : DATETIME2 <<NN>>
+    CreatedAt : DATETIME2
+    IsCompleted : BIT
+}
+
+' ============================================================
+' TABLA: SavingsEntries
+' ============================================================
+class SavingsEntries #FFF8E1 {
+    {static} **Id** : INT <<PK, IDENTITY>>
+    --
+    {static} **GoalId** : INT <<FK>>
+    {static} **Amount** : DECIMAL(18,2) <<NN, CHECK>0>>
+    Date : DATETIME2
+    CreatedAt : DATETIME2
+}
+
+' ============================================================
+' TABLA: AITips
+' ============================================================
+class AITips #E3F2FD {
+    {static} **Id** : INT <<PK, IDENTITY>>
+    --
+    {static} **UserId** : NVARCHAR(128) <<FK>>
+    {static} **Content** : NVARCHAR(1000) <<NN>>
+    GeneratedAt : DATETIME2
+    IsUseful : BIT
+    RatedAt : DATETIME2
+}
+
+' ============================================================
+' ENUM: Category
+' ============================================================
+enum Category <<ENUM>> #FFECB3 {
+    0 - Mensualidad
+    1 - Transporte
+    2 - Comida
+    3 - Entretenimiento
+}
+
+' ============================================================
+' ESQUEMA: eliminados
+' ============================================================
+package "Schema: eliminados" <<Rectangle>> #FFF3E0 {
+    class eliminados.Expenses #FFCCBC {
+        OriginalId : INT
+        UserId : NVARCHAR(128)
+        Amount : DECIMAL(18,2)
+        Category : INT
+        Date : DATETIME2
+        Note : NVARCHAR(500)
+        CreatedAt : DATETIME2
+        DeletedAt : DATETIME2 <<NN>>
+        DeletedBy : NVARCHAR(128)
+    }
+    class eliminados.SavingsGoals #FFCCBC {
+        OriginalId : INT
+        UserId : NVARCHAR(128)
+        Name : NVARCHAR(100)
+        TargetAmount : DECIMAL(18,2)
+        Deadline : DATETIME2
+        CreatedAt : DATETIME2
+        IsCompleted : BIT
+        DeletedAt : DATETIME2 <<NN>>
+        DeletedBy : NVARCHAR(128)
+    }
+    class eliminados.AITips #FFCCBC {
+        OriginalId : INT
+        UserId : NVARCHAR(128)
+        Content : NVARCHAR(1000)
+        GeneratedAt : DATETIME2
+        IsUseful : BIT
+        RatedAt : DATETIME2
+        DeletedAt : DATETIME2 <<NN>>
+        DeletedBy : NVARCHAR(128)
+    }
+}
+
+' ============================================================
+' RELACIONES
+' ============================================================
+AspNetUsers "1" -- "0..*" Expenses : UserId (CASCADE DELETE)
+AspNetUsers "1" -- "0..*" SavingsGoals : UserId (CASCADE DELETE)
+AspNetUsers "1" -- "0..*" AITips : UserId (CASCADE DELETE)
+SavingsGoals "1" -- "0..*" SavingsEntries : GoalId (CASCADE DELETE)
+
+Expenses ..> Category : usa
+
+' ============================================================
+' ÍNDICES
+' ============================================================
+note top of Expenses
+  <<INDEX>>
+  IX_Expenses_User_Date
+    (UserId, Date)
+  IX_Expenses_User_Category
+    (UserId, Category)
+end note
+
+note top of SavingsEntries
+  <<INDEX>>
+  IX_SavingsEntries_Goal_Date
+    (GoalId, Date)
+end note
+
+note top of AITips
+  <<INDEX>>
+  IX_AITips_User_GeneratedAt
+    (UserId, GeneratedAt)
+end note
+
+' ============================================================
+' TRIGGERS
+' ============================================================
+note bottom of eliminados.Expenses
+  <<TRIGGER>>
+  trg_Expenses_AuditDelete
+  AFTER DELETE → INSERT INTO eliminados
+end note
+
+note bottom of eliminados.SavingsGoals
+  <<TRIGGER>>
+  trg_SavingsGoals_AuditDelete
+  AFTER DELETE → INSERT INTO eliminados
+end note
+
+note bottom of eliminados.AITips
+  <<TRIGGER>>
+  trg_AITips_AuditDelete
+  AFTER DELETE → INSERT INTO eliminados
+end note
+
+note right of SavingsEntries
+  <<TRIGGER>>
+  trg_SavingsGoals_AutoComplete
+  AFTER INSERT → auto-completa meta
+  cuando TotalAhorrado >= TargetAmount
+end note
+
+@enduml
