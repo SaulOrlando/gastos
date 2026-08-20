@@ -14,15 +14,11 @@
 # Clone and restore
 git clone <repo-url> && cd gastos
 
-# Backend setup
-cd backend/src/FinanzApp.Api
+# MVC project setup
+cd src/FinanzApp.Web
 dotnet restore
 dotnet ef migrations add InitialCreate
 dotnet ef database update
-
-# Frontend setup
-cd ../../../frontend/src/FinanzApp.Web
-dotnet restore
 ```
 
 ## Validation Scenarios
@@ -30,12 +26,11 @@ dotnet restore
 ### V1: Registration Flow (P1)
 
 **Steps**:
-1. Run backend: `dotnet run` in `backend/src/FinanzApp.Api`
-2. Run frontend: `dotnet run` in `frontend/src/FinanzApp.Web`
-3. Navigate to landing page URL
-4. Verify landing page shows product explanation, benefits, registration form
-5. Fill registration form (name, email, password, currency)
-6. Submit and verify redirect to empty dashboard
+1. Run the app: `dotnet run` in `src/FinanzApp.Web`
+2. Navigate to `https://localhost:5001` (or configured port)
+3. Verify landing page shows product explanation, benefits, registration form
+4. Fill registration form (name, email, password, currency)
+5. Submit and verify redirect to empty dashboard
 
 **Expected**: Account created, user lands on dashboard with empty states
 and "Set Budget" prompt visible.
@@ -75,7 +70,7 @@ messages guide the user to add expenses.
 1. Tap on an existing expense in the list
 2. Change amount from $85 to $95, save
 3. Verify dashboard total updates
-4. Swipe/tap delete on another expense
+4. Tap delete on another expense
 5. Confirm deletion prompt appears
 6. Confirm deletion
 

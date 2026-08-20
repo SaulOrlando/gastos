@@ -1,0 +1,55 @@
+using FinanzApp.Web.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+
+namespace FinanzApp.Web.Data;
+
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+{
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
+
+    public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<SavingsGoal> SavingsGoals => Set<SavingsGoal>();
+    public DbSet<SavingsEntry> SavingsEntries => Set<SavingsEntry>();
+    public DbSet<AITip> AITips => Set<AITip>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<ApplicationUser>(e =>
+        {
+            e.Property(x => x.MonthlyBudget).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<Expense>(e =>
+        {
+            e.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            e.HasIndex(x => new { x.UserId, x.Date }).HasDatabaseName("IX_Expense_User_Date");
+            e.HasIndex(x => new { x.UserId, x.Category }).HasDatabaseName("IX_Expense_User_Category");
+            e.HasOne(x => x.User).WithMany(u => u.Expenses).HasForeignKey(x => x.UserId);
+        });
+
+        builder.Entity<SavingsGoal>(e =>
+        {
+            e.Property(x => x.TargetAmount).HasColumnType("decimal(18,2)");
+            e.HasOne(x => x.User).WithMany(u => u.SavingsGoals).HasForeignKey(x => x.UserId);
+        });
+
+        builder.Entity<SavingsEntry>(e =>
+        {
+            e.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            e.HasIndex(x => new { x.GoalId, x.Date }).HasDatabaseName("IX_SavingsEntry_Goal");
+            e.HasOne(x => x.Goal).WithMany(g => g.SavingsEntries).HasForeignKey(x => x.GoalId);
+        });
+
+        builder.Entity<AITip>(e =>
+        {
+            e.HasIndex(x => new { x.UserId, x.GeneratedAt }).HasDatabaseName("IX_AITip_User");
+            e.HasOne(x => x.User).WithMany(u => u.AITips).HasForeignKey(x => x.UserId);
+        });
+    }
+}

@@ -16,13 +16,12 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create backend ASP.NET Core 8 Web API project at `backend/src/FinanzApp.Api/`
-- [ ] T002 [P] Create frontend Blazor WebAssembly project at `frontend/src/FinanzApp.Web/`
-- [ ] T003 [P] Install Tailwind CSS v4 standalone CLI and configure MSBuild target in `frontend/src/FinanzApp.Web/FinanzApp.Web.csproj`
-- [ ] T004 [P] Add NuGet packages to backend: `Microsoft.AspNetCore.Identity.EntityFrameworkCore`, `Microsoft.EntityFrameworkCore.SqlServer`, `Microsoft.EntityFrameworkCore.Tools`
-- [ ] T005 [P] Add NuGet package to frontend: `Blazor-ApexCharts`
-- [ ] T006 [P] Configure Tailwind CSS theme tokens (green/purple/yellow palette, rounded typography) in `frontend/src/FinanzApp.Web/wwwroot/css/app.css`
-- [ ] T007 [P] Create flat design illustration assets in `frontend/src/FinanzApp.Web/wwwroot/images/`
+- [ ] T001 Create ASP.NET Core 8 MVC project at `src/FinanzApp.Web/`
+- [ ] T002 [P] Install Tailwind CSS v4 standalone CLI and configure MSBuild target in `src/FinanzApp.Web/FinanzApp.Web.csproj`
+- [ ] T003 [P] Add NuGet packages: `Microsoft.AspNetCore.Identity.EntityFrameworkCore`, `Microsoft.EntityFrameworkCore.SqlServer`, `Microsoft.EntityFrameworkCore.Tools`
+- [ ] T004 [P] Configure Tailwind CSS theme tokens (green/purple/yellow palette, rounded typography) in `src/FinanzApp.Web/wwwroot/css/app.css`
+- [ ] T005 [P] Create flat design illustration assets in `src/FinanzApp.Web/wwwroot/images/`
+- [ ] T006 [P] Add Chart.js CDN reference to `_Layout.cshtml` in `src/FinanzApp.Web/Views/Shared/_Layout.cshtml`
 
 ---
 
@@ -32,17 +31,15 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Create User entity extending IdentityUser in `backend/src/FinanzApp.Api/Models/User.cs` (fields: FullName, Currency, MonthlyBudget, BudgetMonth, BudgetYear, CreatedAt)
-- [ ] T009 Create AppDbContext in `backend/src/FinanzApp.Api/Data/AppDbContext.cs` with DbSets for User and UserCurrency (additional DbSets added when entities are created in later phases)
-- [ ] T010 Configure Identity + EF Core in `backend/src/FinanzApp.Api/Program.cs` (AddIdentityCore, AddEntityFrameworkStores, AddApiEndpoints, MapIdentityApi)
-- [ ] T011 Create and apply initial EF Core migration in `backend/src/FinanzApp.Api/Data/Migrations/`
-- [ ] T012 [P] Configure cookie authentication in `backend/src/FinanzApp.Api/Program.cs` (cookie settings, session configuration)
-- [ ] T013 [P] Create global error handling middleware in `backend/src/FinanzApp.Api/Middleware/ErrorHandlerMiddleware.cs`
-- [ ] T014 [P] Create base API response format (error response, validation error response) in `backend/src/FinanzApp.Api/Models/ApiResponse.cs`
-- [ ] T015 [P] Configure CORS and API base URL in `backend/src/FinanzApp.Api/Program.cs` — NOTE: T012 and T015 both modify Program.cs; execute sequentially or merge into a single Program.cs configuration task
-- [ ] T016 Create Blazor auth infrastructure: CookieHandler, CookieAuthenticationStateProvider in `frontend/src/FinanzApp.Web/Services/`
-- [ ] T017 [P] Configure HttpClient with CookieHandler in `frontend/src/FinanzApp.Web/Program.cs`
-- [ ] T018 [P] Create shared layout with mobile-first navigation in `frontend/src/FinanzApp.Web/Components/Layout/MainLayout.razor`
+- [ ] T007 Create User entity extending IdentityUser in `src/FinanzApp.Web/Models/User.cs` (fields: FullName, Currency, MonthlyBudget, BudgetMonth, BudgetYear, CreatedAt)
+- [ ] T008 Create AppDbContext in `src/FinanzApp.Web/Data/AppDbContext.cs` with DbSets for User (additional DbSets added when entities are created in later phases)
+- [ ] T009 Configure Identity + EF Core in `src/FinanzApp.Web/Program.cs` (AddDbContext, AddIdentity, AddControllersWithViews, cookie settings)
+- [ ] T010 Create and apply initial EF Core migration in `src/FinanzApp.Web/Data/Migrations/`
+- [ ] T011 [P] Create shared layout with mobile-first navigation in `src/FinanzApp.Web/Views/Shared/_Layout.cshtml`
+- [ ] T012 [P] Create `_ViewImports.cshtml` with Tag Helper imports in `src/FinanzApp.Web/Views/_ViewImports.cshtml`
+- [ ] T013 [P] Create `_ValidationScriptsPartial.cshtml` in `src/FinanzApp.Web/Views/Shared/_ValidationScriptsPartial.cshtml`
+- [ ] T014 [P] Create global error handling middleware in `src/FinanzApp.Web/Middleware/ErrorHandlerMiddleware.cs`
+- [ ] T015 [P] Configure route middleware in `src/FinanzApp.Web/Program.cs` (MapControllerRoute, default route)
 
 **Checkpoint**: Foundation ready — user story implementation can begin
 
@@ -56,14 +53,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T019 [P] [US1] Create RegisterRequest DTO in `frontend/src/FinanzApp.Web/Models/RegisterRequest.cs` (email, password, fullName, currency)
-- [ ] T020 [P] [US1] Create AuthService in `frontend/src/FinanzApp.Web/Services/AuthService.cs` (Register, Login, Logout, GetCurrentUser)
-- [ ] T021 [US1] Create Landing page in `frontend/src/FinanzApp.Web/Components/Pages/Landing.razor` (product explanation, benefits, registration CTA, mobile-first layout)
-- [ ] T022 [US1] Create Registration form component in `frontend/src/FinanzApp.Web/Components/Pages/Register.razor` (name, email, password, currency dropdown, validation)
-- [ ] T023 [US1] Create Login page in `frontend/src/FinanzApp.Web/Components/Pages/Login.razor` (email, password, friendly error messages)
-- [ ] T024 [US1] Configure route guards: redirect unauthenticated users to Login, authenticated to Dashboard in `frontend/src/FinanzApp.Web/Components/App.razor`
-- [ ] T025 [US1] Create empty Dashboard page in `frontend/src/FinanzApp.Web/Components/Pages/Dashboard.razor` (placeholder for US2)
-- [ ] T026 [US1] Add registration validation (email format, password strength, duplicate email error) in `frontend/src/FinanzApp.Web/Components/Pages/Register.razor`
+- [ ] T016 [P] [US1] Create RegisterViewModel in `src/FinanzApp.Web/ViewModels/RegisterViewModel.cs` (email, password, fullName, currency)
+- [ ] T017 [P] [US1] Create IAuthService + AuthService in `src/FinanzApp.Web/Services/IAuthService.cs` + `AuthService.cs` (Register, Login, Logout, GetCurrentUser)
+- [ ] T018 [US1] Create AuthController in `src/FinanzApp.Web/Controllers/AuthController.cs` (Login, Register, Logout actions)
+- [ ] T019 [US1] Create Landing page in `src/FinanzApp.Web/Views/Home/Index.cshtml` (product explanation, benefits, registration CTA, mobile-first layout)
+- [ ] T020 [US1] Create Registration view in `src/FinanzApp.Web/Views/Auth/Register.cshtml` (name, email, password, currency dropdown, validation)
+- [ ] T021 [US1] Create Login view in `src/FinanzApp.Web/Views/Auth/Login.cshtml` (email, password, friendly error messages)
+- [ ] T022 [US1] Configure auth middleware: redirect unauthenticated users to Login, authenticated to Dashboard in `src/FinanzApp.Web/Program.cs`
+- [ ] T023 [US1] Create empty Dashboard view in `src/FinanzApp.Web/Views/Dashboard/Index.cshtml` (placeholder for US2)
+- [ ] T024 [US1] Add registration validation (email format, password strength, duplicate email error) in `src/FinanzApp.Web/Views/Auth/Register.cshtml`
 
 **Checkpoint**: Landing page and registration flow fully functional and testable
 
@@ -77,20 +75,16 @@
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Create DashboardResponse DTO in `frontend/src/FinanzApp.Web/Models/DashboardResponse.cs` (totalExpenses, monthlyBudget, remainingBudget, categoryBreakdown, monthlyTrend, savingsGoalProgress)
-- [ ] T028 [P] [US2] Create CategoryBreakdown DTO in `frontend/src/FinanzApp.Web/Models/CategoryBreakdown.cs`
-- [ ] T029 [P] [US2] Create MonthlyTrend DTO in `frontend/src/FinanzApp.Web/Models/MonthlyTrend.cs`
-- [ ] T030 [P] [US2] Create DashboardService in `frontend/src/FinanzApp.Web/Services/DashboardService.cs` (GET /api/dashboard, PUT /api/budget)
-- [ ] T031 [P] [US2] Create DashboardController in `backend/src/FinanzApp.Api/Controllers/DashboardController.cs` (GET /api/dashboard endpoint)
-- [ ] T032 [P] [US2] Create BudgetController in `backend/src/FinanzApp.Api/Controllers/BudgetController.cs` (PUT /api/budget endpoint)
-- [ ] T033 [US2] Implement DashboardService.GetDashboardAsync in `backend/src/FinanzApp.Api/Services/DashboardService.cs` (aggregate expenses, calculate breakdown, monthly trend)
-- [ ] T034 [US2] Implement BudgetService.SetBudgetAsync in `backend/src/FinanzApp.Api/Services/BudgetService.cs` (validate, save, recalculate)
-- [ ] T035 [P] [US2] Create SummaryCard reusable component in `frontend/src/FinanzApp.Web/Components/Shared/SummaryCard.razor` (title, value, icon, mobile-first)
-- [ ] T036 [P] [US2] Create DonutChart wrapper component in `frontend/src/FinanzApp.Web/Components/Shared/Charts/DonutChart.razor` (ApexCharts Donut, labels, tooltips, alt text)
-- [ ] T037 [P] [US2] Create LineChart wrapper component in `frontend/src/FinanzApp.Web/Components/Shared/Charts/LineChart.razor` (ApexCharts Line, axis labels, data points, alt text)
-- [ ] T038 [US2] Implement Dashboard page with summary cards, charts, and budget inline edit in `frontend/src/FinanzApp.Web/Components/Pages/Dashboard.razor`
-- [ ] T039 [US2] Add empty state guidance when no expenses/budget set in `frontend/src/FinanzApp.Web/Components/Pages/Dashboard.razor`
-- [ ] T040 [US2] Add loading skeleton states for dashboard in `frontend/src/FinanzApp.Web/Components/Pages/Dashboard.razor`
+- [ ] T025 [P] [US2] Create DashboardViewModel in `src/FinanzApp.Web/ViewModels/DashboardViewModel.cs` (totalExpenses, monthlyBudget, remainingBudget, categoryBreakdown, monthlyTrend, savingsGoalProgress)
+- [ ] T026 [P] [US2] Create IDashboardService + DashboardService in `src/FinanzApp.Web/Services/IDashboardService.cs` + `DashboardService.cs` (aggregate expenses, calculate breakdown, monthly trend)
+- [ ] T027 [P] [US2] Create IBudgetService + BudgetService in `src/FinanzApp.Web/Services/IBudgetService.cs` + `BudgetService.cs` (validate, save, recalculate)
+- [ ] T028 [P] [US2] Create IExpenseRepository + ExpenseRepository in `src/FinanzApp.Web/Repositories/IExpenseRepository.cs` + `ExpenseRepository.cs` (EF Core queries for dashboard)
+- [ ] T029 [US2] Create DashboardController in `src/FinanzApp.Web/Controllers/DashboardController.cs` (Index for GET, SetBudget for POST)
+- [ ] T030 [US2] Create Dashboard view in `src/FinanzApp.Web/Views/Dashboard/Index.cshtml` (summary cards, charts, budget inline edit)
+- [ ] T031 [US2] Add Chart.js donut chart for category breakdown in `src/FinanzApp.Web/Views/Dashboard/Index.cshtml`
+- [ ] T032 [US2] Add Chart.js line chart for monthly spending trends in `src/FinanzApp.Web/Views/Dashboard/Index.cshtml`
+- [ ] T033 [US2] Add empty state guidance when no expenses/budget set in `src/FinanzApp.Web/Views/Dashboard/Index.cshtml`
+- [ ] T034 [US2] Add loading skeleton states for dashboard in `src/FinanzApp.Web/Views/Dashboard/Index.cshtml`
 
 **Checkpoint**: Dashboard displays financial overview with charts and budget management
 
@@ -104,21 +98,19 @@
 
 ### Implementation for User Story 3
 
-- [ ] T041 [P] [US3] Create Expense entity in `backend/src/FinanzApp.Api/Models/Expense.cs` (Amount, Category, Date, Note, UserId, CreatedAt, UpdatedAt)
-- [ ] T042 [P] [US3] Create Category enum in `backend/src/FinanzApp.Api/Models/Category.cs` (Mensualidad, Transporte, Comida, Entretenimiento)
-- [ ] T043 [P] [US3] Create ExpenseResponse DTO in `frontend/src/FinanzApp.Web/Models/ExpenseResponse.cs`
-- [ ] T044 [P] [US3] Create ExpenseRequest DTO in `frontend/src/FinanzApp.Web/Models/ExpenseRequest.cs`
-- [ ] T045 [P] [US3] Create ExpensesController in `backend/src/FinanzApp.Api/Controllers/ExpensesController.cs` (GET, POST, PUT, DELETE)
-- [ ] T046 [US3] Implement ExpenseService in `backend/src/FinanzApp.Api/Services/ExpenseService.cs` (CRUD, validation, ownership check)
-- [ ] T047 [US3] Add DbSet<Expense> to AppDbContext and configure entity (indexes, validation) in `backend/src/FinanzApp.Api/Data/AppDbContext.cs`
-- [ ] T048 [US3] Create EF Core migration for Expense entity
-- [ ] T049 [P] [US3] Create ExpenseService in `frontend/src/FinanzApp.Web/Services/ExpenseService.cs` (CRUD operations calling API)
-- [ ] T050 [P] [US3] Create ExpenseForm reusable component in `frontend/src/FinanzApp.Web/Components/Shared/ExpenseForm.razor` (amount, category selector, date picker, note, mobile-friendly)
-- [ ] T051 [P] [US3] Create ExpenseList component in `frontend/src/FinanzApp.Web/Components/Shared/ExpenseList.razor` (list with edit/delete actions)
-- [ ] T052 [US3] Create Expenses page in `frontend/src/FinanzApp.Web/Components/Pages/Expenses.razor` (list + add form + edit modal)
-- [ ] T053 [US3] Add expense validation (positive amount, required fields, friendly error messages) in `frontend/src/FinanzApp.Web/Components/Shared/ExpenseForm.razor`
-- [ ] T054 [US3] Add delete confirmation prompt (modal or inline) in `frontend/src/FinanzApp.Web/Components/Shared/ExpenseList.razor`
-- [ ] T055 [US3] Add category icons (graduation-cap, bus, utensils, gamepad) to category selector in `frontend/src/FinanzApp.Web/Components/Shared/ExpenseForm.razor`
+- [ ] T035 [P] [US3] Create Expense entity in `src/FinanzApp.Web/Models/Expense.cs` (Amount, Category, Date, Note, UserId, CreatedAt, UpdatedAt)
+- [ ] T036 [P] [US3] Create Category enum in `src/FinanzApp.Web/Models/Category.cs` (Mensualidad, Transporte, Comida, Entretenimiento)
+- [ ] T037 [P] [US3] Create ExpenseFormViewModel in `src/FinanzApp.Web/ViewModels/ExpenseFormViewModel.cs`
+- [ ] T038 [P] [US3] Create IExpenseService + ExpenseService in `src/FinanzApp.Web/Services/IExpenseService.cs` + `ExpenseService.cs` (CRUD, validation, ownership check)
+- [ ] T039 [P] [US3] Add DbSet<Expense> to AppDbContext and configure entity (indexes, validation) in `src/FinanzApp.Web/Data/AppDbContext.cs`
+- [ ] T040 [US3] Create EF Core migration for Expense entity
+- [ ] T041 [US3] Create ExpenseController in `src/FinanzApp.Web/Controllers/ExpenseController.cs` (Index, Create, Edit, Delete actions)
+- [ ] T042 [US3] Create Expense list view in `src/FinanzApp.Web/Views/Expense/Index.cshtml` (list with edit/delete actions)
+- [ ] T043 [US3] Create Expense form view in `src/FinanzApp.Web/Views/Expense/Create.cshtml` (amount, category selector, date picker, note, mobile-friendly)
+- [ ] T044 [US3] Create Expense edit view in `src/FinanzApp.Web/Views/Expense/Edit.cshtml` (pre-filled form, validation)
+- [ ] T045 [US3] Create Expense delete confirmation view in `src/FinanzApp.Web/Views/Expense/Delete.cshtml`
+- [ ] T046 [US3] Add expense validation (positive amount, required fields, friendly error messages) in ViewModels
+- [ ] T047 [US3] Add category icons (graduation-cap, bus, utensils, gamepad) to category selector in `src/FinanzApp.Web/Views/Expense/Create.cshtml`
 
 **Checkpoint**: Full expense CRUD with immediate dashboard updates
 
@@ -132,15 +124,14 @@
 
 ### Implementation for User Story 4
 
-- [ ] T056 [P] [US4] Create AITip entity in `backend/src/FinanzApp.Api/Models/AITip.cs` (Content, GeneratedAt, IsUseful, RatedAt, UserId)
-- [ ] T057 [P] [US4] Create TipsController in `backend/src/FinanzApp.Api/Controllers/TipsController.cs` (GET /api/tips, PUT /api/tips/{id}/feedback)
-- [ ] T058 [US4] Implement AITipService in `backend/src/FinanzApp.Api/Services/AITipService.cs` (analyze expense patterns, generate data-specific tips, handle insufficient data)
-- [ ] T059 [US4] Add DbSet<AITip> to AppDbContext and configure entity in `backend/src/FinanzApp.Api/Data/AppDbContext.cs`
-- [ ] T060 [US4] Create EF Core migration for AITip entity
-- [ ] T061 [P] [US4] Create AITipResponse DTO in `frontend/src/FinanzApp.Web/Models/AITipResponse.cs`
-- [ ] T062 [P] [US4] Create TipsService in `frontend/src/FinanzApp.Web/Services/TipsService.cs` (GET tips, submit feedback)
-- [ ] T063 [P] [US4] Create AITipCard reusable component in `frontend/src/FinanzApp.Web/Components/Shared/AITipCard.razor` (tip content, useful/not useful buttons, friendly language)
-- [ ] T064 [US4] Create Tips page in `frontend/src/FinanzApp.Web/Components/Pages/Tips.razor` (list of tip cards, empty state for insufficient data)
+- [ ] T048 [P] [US4] Create AITip entity in `src/FinanzApp.Web/Models/AITip.cs` (Content, GeneratedAt, IsUseful, RatedAt, UserId)
+- [ ] T049 [P] [US4] Create ITipService + TipService in `src/FinanzApp.Web/Services/ITipService.cs` + `TipService.cs` (analyze expense patterns, generate data-specific tips, handle insufficient data)
+- [ ] T050 [P] [US4] Create ITipRepository + TipRepository in `src/FinanzApp.Web/Repositories/ITipRepository.cs` + `TipRepository.cs`
+- [ ] T051 [P] [US4] Add DbSet<AITip> to AppDbContext and configure entity in `src/FinanzApp.Web/Data/AppDbContext.cs`
+- [ ] T052 [US4] Create EF Core migration for AITip entity
+- [ ] T053 [US4] Create TipController in `src/FinanzApp.Web/Controllers/TipController.cs` (Index, Feedback actions)
+- [ ] T054 [US4] Create TipViewModel in `src/FinanzApp.Web/ViewModels/TipViewModel.cs` (tip content, usefulness status)
+- [ ] T055 [US4] Create Tips view in `src/FinanzApp.Web/Views/Tip/Index.cshtml` (list of tip cards, empty state for insufficient data)
 
 **Checkpoint**: AI tips are data-specific, actionable, and support feedback
 
@@ -154,19 +145,19 @@
 
 ### Implementation for User Story 5
 
-- [ ] T065 [P] [US5] Create SavingsGoal entity in `backend/src/FinanzApp.Api/Models/SavingsGoal.cs` (Name, TargetAmount, Deadline, IsCompleted, UserId)
-- [ ] T066 [P] [US5] Create SavingsEntry entity in `backend/src/FinanzApp.Api/Models/SavingsEntry.cs` (Amount, Date, GoalId)
-- [ ] T067 [P] [US5] Create GoalsController in `backend/src/FinanzApp.Api/Controllers/GoalsController.cs` (GET /api/goals, POST /api/goals, POST /api/goals/{id}/entries)
-- [ ] T068 [US5] Implement GoalService in `backend/src/FinanzApp.Api/Services/GoalService.cs` (CRUD, projection calculation, completion detection)
-- [ ] T069 [US5] Add DbSet<SavingsGoal> and DbSet<SavingsEntry> to AppDbContext and configure entities in `backend/src/FinanzApp.Api/Data/AppDbContext.cs`
-- [ ] T070 [US5] Create EF Core migration for SavingsGoal + SavingsEntry
-- [ ] T071 [P] [US5] Create GoalResponse DTO in `frontend/src/FinanzApp.Web/Models/GoalResponse.cs` (with willReach, monthlyNeeded, percentage)
-- [ ] T072 [P] [US5] Create GoalService in `frontend/src/FinanzApp.Web/Services/GoalService.cs` (list goals, create goal, add savings)
-- [ ] T073 [P] [US5] Create GoalCard reusable component in `frontend/src/FinanzApp.Web/Components/Shared/GoalCard.razor` (progress bar, percentage, projection, Add Savings button)
-- [ ] T074 [US5] Create Goals page in `frontend/src/FinanzApp.Web/Components/Pages/Goals.razor` (list of goal cards, create goal form, empty state)
-- [ ] T075 [US5] Add goal creation form (name, target amount, deadline) in `frontend/src/FinanzApp.Web/Components/Pages/Goals.razor`
-- [ ] T076 [US5] Add "Add Savings" inline form on GoalCard in `frontend/src/FinanzApp.Web/Components/Shared/GoalCard.razor`
-- [ ] T077 [US5] Add projection display (will reach / won't reach with suggestion) in `frontend/src/FinanzApp.Web/Components/Shared/GoalCard.razor`
+- [ ] T056 [P] [US5] Create SavingsGoal entity in `src/FinanzApp.Web/Models/SavingsGoal.cs` (Name, TargetAmount, Deadline, IsCompleted, UserId)
+- [ ] T057 [P] [US5] Create SavingsEntry entity in `src/FinanzApp.Web/Models/SavingsEntry.cs` (Amount, Date, GoalId)
+- [ ] T058 [P] [US5] Create IGoalService + GoalService in `src/FinanzApp.Web/Services/IGoalService.cs` + `GoalService.cs` (CRUD, projection calculation, completion detection)
+- [ ] T059 [P] [US5] Create IGoalRepository + GoalRepository in `src/FinanzApp.Web/Repositories/IGoalRepository.cs` + `GoalRepository.cs`
+- [ ] T060 [P] [US5] Create GoalViewModel in `src/FinanzApp.Web/ViewModels/GoalViewModel.cs` (with willReach, monthlyNeeded, percentage)
+- [ ] T061 [P] [US5] Add DbSet<SavingsGoal> and DbSet<SavingsEntry> to AppDbContext and configure entities in `src/FinanzApp.Web/Data/AppDbContext.cs`
+- [ ] T062 [US5] Create EF Core migration for SavingsGoal + SavingsEntry
+- [ ] T063 [US5] Create GoalController in `src/FinanzApp.Web/Controllers/GoalController.cs` (Index, Create, AddSavings actions)
+- [ ] T064 [US5] Create Goals list view in `src/FinanzApp.Web/Views/Goal/Index.cshtml` (list of goal cards, empty state)
+- [ ] T065 [US5] Create Goal creation form in `src/FinanzApp.Web/Views/Goal/Create.cshtml` (name, target amount, deadline)
+- [ ] T066 [US5] Create Add Savings form in `src/FinanzApp.Web/Views/Goal/AddSavings.cshtml` (amount, date defaults to today)
+- [ ] T067 [US5] Add progress bar, percentage, and projection display in `src/FinanzApp.Web/Views/Goal/Index.cshtml`
+- [ ] T068 [US5] Add projection display (will reach / won't reach with suggestion) in `src/FinanzApp.Web/Views/Goal/Index.cshtml`
 
 **Checkpoint**: Full savings goal lifecycle with projections and feedback
 
@@ -176,20 +167,18 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T078 [P] Create account deletion endpoint and service in `backend/src/FinanzApp.Api/Controllers/UserController.cs` (DELETE /api/user/account with cascade delete)
-- [ ] T079 [P] Create profile page in `frontend/src/FinanzApp.Web/Components/Pages/Profile.razor` (view profile, delete account with confirmation)
-- [ ] T079a [P] Create CurrencyDisplay helper component in `frontend/src/FinanzApp.Web/Components/Shared/CurrencyDisplay.razor` (renders amount with user's currency symbol/code, used across dashboard, expenses, goals per FR-033)
-- [ ] T080 [P] Add WCAG 2.1 AA compliance: keyboard navigation, focus management, aria labels across all components in `frontend/src/FinanzApp.Web/Components/`
-- [ ] T081 [P] Add alt text for all charts (DonutChart, LineChart) describing key data in `frontend/src/FinanzApp.Web/Components/Shared/Charts/`
-- [ ] T082 [P] Add responsive mobile breakpoints and touch targets across all pages in `frontend/src/FinanzApp.Web/Components/Pages/`
-- [ ] T083 [P] Add friendly, non-corporate tone to all UI text (Spanish) across all components in `frontend/src/FinanzApp.Web/Components/`
-- [ ] T084 [P] Add plain-language explanations for financial terms on dashboard and goals pages in `frontend/src/FinanzApp.Web/Components/Pages/`
-- [ ] T085 [P] Add loading skeleton states for all async pages (Dashboard, Expenses, Tips, Goals) in `frontend/src/FinanzApp.Web/Components/Pages/`
-- [ ] T086 [P] Add empty state guidance for all sections (no expenses, no budget, no goals, insufficient data for tips) in `frontend/src/FinanzApp.Web/Components/Pages/`
-- [ ] T087 Optimize dashboard query performance for 500+ expense records (pagination, virtualization, lazy loading, indexed queries) in `backend/src/FinanzApp.Api/Services/DashboardService.cs` and `frontend/src/FinanzApp.Web/Components/`
-- [ ] T087a [P] Add performance monitoring: configure logging for response times and query performance in `backend/src/FinanzApp.Api/Program.cs` (ILoggingBuilder + request timing middleware)
-- [ ] T088 Add network loss handling and retry logic for expense saving in `frontend/src/FinanzApp.Web/Services/ExpenseService.cs`
-- [ ] T089 Run quickstart.md validation scenarios to verify end-to-end functionality
+- [ ] T069 [P] Create account deletion action in `src/FinanzApp.Web/Controllers/AuthController.cs` (DeleteAccount POST with cascade delete)
+- [ ] T070 [P] Create profile/account view in `src/FinanzApp.Web/Views/Auth/Profile.cshtml` (view profile, delete account with confirmation)
+- [ ] T070a [P] Create `_CurrencyHelper.cshtml` partial view in `src/FinanzApp.Web/Views/Shared/_CurrencyHelper.cshtml` (renders amount with user's currency symbol/code, used across dashboard, expenses, goals per FR-033)
+- [ ] T071 [P] Add WCAG 2.1 AA compliance: keyboard navigation, focus management, aria labels across all Views in `src/FinanzApp.Web/Views/`
+- [ ] T072 [P] Add alt text for all charts (donut, line) describing key data in `src/FinanzApp.Web/Views/Dashboard/Index.cshtml`
+- [ ] T073 [P] Add responsive mobile breakpoints and touch targets across all Views in `src/FinanzApp.Web/Views/`
+- [ ] T074 [P] Add friendly, non-corporate tone to all UI text (Spanish) across all Views in `src/FinanzApp.Web/Views/`
+- [ ] T075 [P] Add plain-language explanations for financial terms on dashboard and goals pages in `src/FinanzApp.Web/Views/`
+- [ ] T076 [P] Add empty state guidance for all sections (no expenses, no budget, no goals, insufficient data for tips) in `src/FinanzApp.Web/Views/`
+- [ ] T077 Optimize dashboard query performance for 500+ expense records (indexed queries, projection) in `src/FinanzApp.Web/Services/DashboardService.cs`
+- [ ] T077a [P] Add performance monitoring: configure logging for response times in `src/FinanzApp.Web/Program.cs`
+- [ ] T078 Run quickstart.md validation scenarios to verify end-to-end functionality
 
 **Checkpoint**: All features complete, polished, and validated against quickstart
 
@@ -197,14 +186,14 @@
 
 ## Phase 9: Testing (Deferred — After All User Stories)
 
-**Purpose**: Unit, component, and integration tests using xUnit, bUnit, and WebApplicationFactory. This phase is executed after all user stories are implemented and validated.
+**Purpose**: Unit and integration tests using xUnit. This phase is executed after all user stories are implemented and validated.
 
-- [ ] T090 Set up test project structure (`backend/tests/FinanzApp.Api.Tests/`, `frontend/tests/FinanzApp.Web.Tests/`) with xUnit and bUnit packages
-- [ ] T091 Write xUnit integration tests for AuthController (register, login, logout, delete account) in `backend/tests/FinanzApp.Api.Tests/Controllers/AuthControllerTests.cs`
-- [ ] T092 Write xUnit integration tests for DashboardController and BudgetController (summary, charts, budget CRUD) in `backend/tests/FinanzApp.Api.Tests/Controllers/DashboardControllerTests.cs`
-- [ ] T093 Write xUnit integration tests for ExpensesController (CRUD, validation, cascade updates) in `backend/tests/FinanzApp.Api.Tests/Controllers/ExpensesControllerTests.cs`
-- [ ] T094 Write bUnit tests for Blazor components (SummaryCard, GoalCard, ExpenseForm, CurrencyDisplay) in `frontend/tests/FinanzApp.Web.Tests/Components/`
-- [ ] T095 Write integration tests for TipService and GoalService (tip generation, projection math) in `backend/tests/FinanzApp.Api.Tests/Services/`
+- [ ] T079 Set up test project structure at `tests/FinanzApp.Web.Tests/` with xUnit packages
+- [ ] T080 Write unit tests for AuthService (register, login, logout, delete account) in `tests/FinanzApp.Web.Tests/Services/AuthServiceTests.cs`
+- [ ] T081 Write unit tests for DashboardService and BudgetService (summary, charts, budget CRUD) in `tests/FinanzApp.Web.Tests/Services/DashboardServiceTests.cs`
+- [ ] T082 Write unit tests for ExpenseService (CRUD, validation, ownership check) in `tests/FinanzApp.Web.Tests/Services/ExpenseServiceTests.cs`
+- [ ] T083 Write unit tests for TipService and GoalService (tip generation, projection math) in `tests/FinanzApp.Web.Tests/Services/TipServiceTests.cs`
+- [ ] T084 Write integration tests for Controllers (Auth, Dashboard, Expense, Goal, Tip) in `tests/FinanzApp.Web.Tests/Controllers/`
 
 ---
 
@@ -232,31 +221,14 @@
 
 ### Parallel Opportunities
 
-**Phase 1**: T002, T003, T004, T005, T006, T007 can all run in parallel
-**Phase 2**: T012, T013, T014, T015, T017, T018 can run in parallel
-**US1**: T019, T020 can run in parallel
-**US2**: T027, T028, T029, T030, T031, T032, T035, T036, T037 can run in parallel
-**US3**: T041, T042, T043, T044, T045, T049, T050, T051 can run in parallel
-**US4**: T056, T057, T061, T062, T063 can run in parallel
-**US5**: T065, T066, T067, T071, T072, T073 can run in parallel
-**Polish**: T078, T079, T080, T081, T082, T083, T084, T085, T086 can run in parallel
-
----
-
-## Parallel Example: User Story 2
-
-```bash
-# Launch all US2 tasks together:
-Task: "Create DashboardResponse DTO in frontend/src/FinanzApp.Web/Models/DashboardResponse.cs"
-Task: "Create CategoryBreakdown DTO in frontend/src/FinanzApp.Web/Models/CategoryBreakdown.cs"
-Task: "Create MonthlyTrend DTO in frontend/src/FinanzApp.Web/Models/MonthlyTrend.cs"
-Task: "Create DashboardService in frontend/src/FinanzApp.Web/Services/DashboardService.cs"
-Task: "Create DashboardController in backend/src/FinanzApp.Api/Controllers/DashboardController.cs"
-Task: "Create BudgetController in backend/src/FinanzApp.Api/Controllers/BudgetController.cs"
-Task: "Create SummaryCard component in frontend/src/FinanzApp.Web/Components/Shared/SummaryCard.razor"
-Task: "Create DonutChart wrapper in frontend/src/FinanzApp.Web/Components/Shared/Charts/DonutChart.razor"
-Task: "Create LineChart wrapper in frontend/src/FinanzApp.Web/Components/Shared/Charts/LineChart.razor"
-```
+**Phase 1**: T002, T003, T004, T005, T006 can all run in parallel
+**Phase 2**: T011, T012, T013, T014, T015 can run in parallel
+**US1**: T016, T017 can run in parallel
+**US2**: T025, T026, T027, T028 can run in parallel
+**US3**: T035, T036, T037, T038, T039 can run in parallel
+**US4**: T048, T049, T050, T051 can run in parallel
+**US5**: T056, T057, T058, T059, T060, T061 can run in parallel
+**Polish**: T069, T070, T070a, T071, T072, T073, T074, T075, T076 can run in parallel
 
 ---
 
@@ -279,21 +251,7 @@ Task: "Create LineChart wrapper in frontend/src/FinanzApp.Web/Components/Shared/
 5. Add US4 → Test → Deploy/Demo (AI tips active!)
 6. Add US5 → Test → Deploy/Demo (Goals working!)
 7. Polish → Final release
-8. Testing (Phase 9) → All unit, component, and integration tests complete
-
-### Parallel Team Strategy
-
-With multiple developers:
-
-1. Team completes Setup + Foundational together
-2. Once Phase 2 done:
-   - Developer A: US1 (Landing + Registration)
-   - Developer B: US2 (Dashboard + Charts)
-   - Developer C: US3 (Expense CRUD)
-3. After US1-3 complete:
-   - Developer A: US4 (AI Tips)
-   - Developer B: US5 (Savings Goals)
-4. Final: Team collaborates on Polish phase
+8. Testing (Phase 9) → All tests complete
 
 ---
 

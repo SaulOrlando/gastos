@@ -427,3 +427,22 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+## --- FinanzApp: reglas propias ---
+
+# Salida de compilación (cualquier profundidad)
+**/[Bb]in/
+**/[Oo]bj/
+
+# Resultados de pruebas (dotnet test / coverlet)
+TestResults/
+
+# Caché de Razor compiler
+**/.razor/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Publicación local
+[Pp]ublishProfiles/
