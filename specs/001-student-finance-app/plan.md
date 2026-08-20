@@ -6,36 +6,50 @@
 
 ## Summary
 
-Build a full-stack personal finance web app for university students. Backend
-in ASP.NET Core Web API with EF Core + SQL Server. Frontend in Blazor
-WebAssembly consuming the API. Real authentication via ASP.NET Core Identity.
-All expense, category, and savings goal data persisted in the database.
-Charts via ApexCharts.Blazor for donut and line visualizations. Reusable
-component architecture (SummaryCard, ExpenseForm, AITipCard). Mobile-first
-design following the constitution's green/purple/yellow palette.
+Build a personal finance web app for university students using ASP.NET Core 8
+MVC with Layered Architecture. Single project with Controllers, Razor Views,
+Services, Repositories, and EF Core. Real authentication via ASP.NET Core
+Identity. All expense, category, and savings goal data persisted in the database.
+Charts via Chart.js integrated in Razor Views. Reusable partial views for
+common UI patterns. Mobile-first design following the constitution's
+green/purple/yellow palette.
 
 ## Technical Context
 
 **Language/Version**: C# 12 / .NET 8
 
+**Architecture**: MVC + 4-Layer Separation
+
+```text
+Presentation (Controllers + Views + ViewModels)
+    ↓
+Business Logic (Services)
+    ↓
+Data Access (Repositories + DbContext)
+    ↓
+Domain (Entities)
+```
+
 **Primary Dependencies**:
-- Backend: ASP.NET Core 8 Web API, Entity Framework Core 8, ASP.NET Core Identity
-- Frontend: Blazor WebAssembly (.NET 8), ApexCharts.Blazor
-- Database: SQL Server (LocalDB for dev, Azure SQL for prod)
+- ASP.NET Core 8 MVC (Razor Views, Tag Helpers, model binding)
+- Entity Framework Core 8 (SQL Server provider)
+- ASP.NET Core Identity (cookie auth)
+- Chart.js (client-side charts via CDN)
+- Tailwind CSS v4 (standalone CLI)
+
+**Database**: SQL Server (LocalDB for dev, Azure SQL for prod)
 
 **Storage**: SQL Server via EF Core migrations
 
-**Testing**: xUnit, bUnit (Blazor component tests), Integration tests via WebApplicationFactory — deferred to dedicated test phase after all user stories are implemented (see tasks T090–T095)
+**Testing**: xUnit (unit + integration) — deferred to dedicated test phase
 
-**Target Platform**: Web (Blazor WASM in browser), responsive mobile-first
-
-**Project Type**: Web application (frontend + backend)
+**Target Platform**: Web (server-rendered MVC), responsive mobile-first
 
 **Performance Goals**: Dashboard loads <3s on 3G, supports 500+ expense records per user
 
 **Constraints**: Mobile-first responsive, WCAG 2.1 AA, constitution visual palette
 
-**Scale/Scope**: ~50 screens/components, single-user personal finance (no multi-tenant)
+**Scale/Scope**: ~10 controllers, ~20 views, single-user personal finance (no multi-tenant)
 
 ## Constitution Check
 
@@ -91,50 +105,123 @@ specs/001-student-finance-app/
 ### Source Code (repository root)
 
 ```text
-backend/
-├── src/
-│   ├── FinanzApp.Api/           # ASP.NET Core Web API project
-│   │   ├── Controllers/         # API controllers
-│   │   ├── Models/              # EF Core entity models
-│   │   ├── Data/                # DbContext, migrations
-│   │   ├── Services/            # Business logic, AI tip generation
-│   │   └── Program.cs
-│   └── FinanzApp.Api.Tests/     # xUnit integration tests
-└── tests/
-    └── integration/
+src/
+└── FinanzApp.Web/                    # ASP.NET Core MVC (single project)
+    ├── Controllers/                  # Presentation: HTTP handlers
+    │   ├── HomeController.cs         # Landing page
+    │   ├── AuthController.cs         # Login, Register, Logout
+    │   ├── DashboardController.cs    # Dashboard + Budget
+    │   ├── ExpenseController.cs      # Expense CRUD
+    │   ├── GoalController.cs         # Savings goals
+    │   └── TipController.cs          # AI tips
+    ├── Views/                        # Presentation: Razor Views
+    │   ├── Shared/
+    │   │   ├── _Layout.cshtml
+    │   │   ├── _ValidationScriptsPartial.cshtml
+    │   │   └── _ViewImports.cshtml
+    │   ├── Home/
+    │   │   └── Index.cshtml
+    │   ├── Auth/
+    │   │   ├── Login.cshtml
+    │   │   └── Register.cshtml
+    │   ├── Dashboard/
+    │   │   └── Index.cshtml
+    │   ├── Expense/
+    │   │   ├── Index.cshtml
+    │   │   ├── Create.cshtml
+    │   │   ├── Edit.cshtml
+    │   │   └── Delete.cshtml
+    │   ├── Goal/
+    │   │   ├── Index.cshtml
+    │   │   ├── Create.cshtml
+    │   │   └── AddSavings.cshtml
+    │   └── Tip/
+    │       └── Index.cshtml
+    ├── Models/                       # Domain: EF Core entities
+    │   ├── User.cs
+    │   ├── Expense.cs
+    │   ├── Category.cs              # Enum
+    │   ├── SavingsGoal.cs
+    │   ├── SavingsEntry.cs
+    │   └── AITip.cs
+    ├── ViewModels/                   # Presentation: ViewModels
+    │   ├── DashboardViewModel.cs
+    │   ├── ExpenseFormViewModel.cs
+    │   ├── GoalViewModel.cs
+    │   └── TipViewModel.cs
+    ├── Services/                     # Business Logic Layer
+    │   ├── IDashboardService.cs
+    │   ├── DashboardService.cs
+    │   ├── IExpenseService.cs
+    │   ├── ExpenseService.cs
+    │   ├── IGoalService.cs
+    │   ├── GoalService.cs
+    │   ├── ITipService.cs
+    │   ├── TipService.cs
+    │   ├── IBudgetService.cs
+    │   └── BudgetService.cs
+    ├── Repositories/                 # Data Access Layer
+    │   ├── IExpenseRepository.cs
+    │   ├── ExpenseRepository.cs
+    │   ├── IGoalRepository.cs
+    │   ├── GoalRepository.cs
+    │   ├── ITipRepository.cs
+    │   └── TipRepository.cs
+    ├── Data/                         # Data Access: DbContext, Migrations
+    │   ├── AppDbContext.cs
+    │   └── Migrations/
+    ├── wwwroot/
+    │   ├── css/                      # Tailwind CSS output
+    │   ├── js/                       # Chart.js scripts
+    │   └── images/
+    ├── Program.cs                    # DI, middleware, MVC config
+    └── FinanzApp.Web.csproj
 
-frontend/
-├── src/
-│   ├── FinanzApp.Web/           # Blazor WebAssembly project
-│   │   ├── Components/         # Reusable UI components
-│   │   │   ├── SummaryCard.razor
-│   │   │   ├── ExpenseForm.razor
-│   │   │   ├── AITipCard.razor
-│   │   │   ├── GoalCard.razor
-│   │   │   └── Charts/
-│   │   │       ├── DonutChart.razor
-│   │   │       └── LineChart.razor
-│   │   ├── Pages/              # Route pages
-│   │   │   ├── Landing.razor
-│   │   │   ├── Login.razor
-│   │   │   ├── Register.razor
-│   │   │   ├── Dashboard.razor
-│   │   │   ├── Expenses.razor
-│   │   │   ├── Tips.razor
-│   │   │   └── Goals.razor
-│   │   ├── Services/           # API client services
-│   │   ├── Models/             # DTOs / view models
-│   │   └── wwwroot/
-│   │       ├── css/            # Global styles (green palette)
-│   │       └── images/         # Flat design illustrations
-│   └── FinanzApp.Web.Tests/    # bUnit component tests
-└── tests/
-    └── unit/
+tests/
+└── FinanzApp.Web.Tests/             # xUnit tests
+    ├── Controllers/
+    ├── Services/
+    └── Repositories/
+
+db/                                  # SQL scripts (schema, triggers, SPs)
 ```
 
-**Structure Decision**: Option 2 (Web application) — separate backend API
-and frontend Blazor WASM projects. Backend handles auth, data, and AI tip
-generation. Frontend consumes the API and provides the mobile-first UI.
+**Structure Decision**: Single ASP.NET Core MVC project with layered
+architecture. All presentation, business logic, data access, and domain
+code lives in one deployable unit. No separate frontend/backend — the
+server renders Razor Views and handles form submissions directly.
+
+## Layer Responsibilities
+
+| Layer | Folders | Rules |
+|-------|---------|-------|
+| Presentation | `Controllers/`, `Views/`, `ViewModels/` | Handle HTTP, never access DbContext, delegate to Services |
+| Business Logic | `Services/` | All business rules, injected via DI, interface + implementation |
+| Data Access | `Repositories/`, `Data/` | EF Core queries, never contain business logic |
+| Domain | `Models/` | Pure entities, enums, Data Annotations, no dependencies |
+
+## Dependency Injection Order (Program.cs)
+
+```csharp
+// 1. DbContext
+builder.Services.AddDbContext<AppDbContext>(...);
+
+// 2. Repositories
+builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<IGoalRepository, GoalRepository>();
+builder.Services.AddScoped<ITipRepository, TipRepository>();
+
+// 3. Services
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IGoalService, GoalService>();
+builder.Services.AddScoped<ITipService, TipService>();
+builder.Services.AddScoped<IBudgetService, BudgetService>();
+
+// 4. Identity + MVC
+builder.Services.AddIdentity<...>(...);
+builder.Services.AddControllersWithViews();
+```
 
 ## Complexity Tracking
 
