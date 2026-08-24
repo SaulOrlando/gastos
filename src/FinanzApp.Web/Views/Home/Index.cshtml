@@ -1,8 +1,72 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="bg-primary text-white rounded-3xl px-6 py-12 sm:px-12 sm:py-20 text-center shadow-lg">
+    <p class="text-accent-light font-semibold uppercase tracking-widest text-xs sm:text-sm mb-4">
+        Finanzas para estudiantes
+    </p>
+    <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight max-w-2xl mx-auto">
+        Controla tu dinero de estudiante sin esfuerzo
+    </h1>
+    <p class="mt-4 sm:mt-6 text-emerald-100 text-base sm:text-lg max-w-xl mx-auto">
+        Registra tus gastos en segundos, ponle meta a tus ahorros y recibe consejos
+        hechos a tu medida. Sin hojas de cálculo, sin dolores de cabeza.
+    </p>
+    <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a asp-controller="Auth" asp-action="Register"
+           class="w-full sm:w-auto bg-accent hover:bg-accent-dark transition-colors text-white font-bold text-lg px-10 py-4 rounded-full shadow-md focus:outline-none focus:ring-4 focus:ring-accent-light/50"
+           aria-label="Crear una cuenta nueva en FinanzApp">
+            Crear mi cuenta gratis
+        </a>
+        <a asp-controller="Auth" asp-action="Login"
+           class="w-full sm:w-auto border-2 border-white/70 hover:border-accent-light hover:text-accent-light transition-colors text-white font-bold text-lg px-10 py-4 rounded-full focus:outline-none focus:ring-4 focus:ring-white/30"
+           aria-label="Iniciar sesión en FinanzApp">
+            Ya tengo cuenta
+        </a>
+    </div>
+</section>
+
+<section class="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6" aria-label="Lo que puedes hacer con FinanzApp">
+    <article class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <div class="w-12 h-12 rounded-full bg-primary-light/10 flex items-center justify-center mb-4" aria-hidden="true">
+            <span class="text-primary text-2xl font-bold">$</span>
+        </div>
+        <h2 class="font-bold text-lg text-secondary-dark">Gastos bajo control</h2>
+        <p class="mt-2 text-secondary text-sm leading-relaxed">
+            Anota lo que gastas en mensualidad, transporte, comida o diversión. Toma menos de 10 segundos.
+        </p>
+    </article>
+
+    <article class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <div class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4" aria-hidden="true">
+            <span class="text-accent text-2xl font-bold">&#9650;</span>
+        </div>
+        <h2 class="font-bold text-lg text-secondary-dark">Metas de ahorro</h2>
+        <p class="mt-2 text-secondary text-sm leading-relaxed">
+            Ahorra para ese viaje o laptop nueva y te decimos si vas bien encaminado para lograrlo.
+        </p>
+    </article>
+
+    <article class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4" aria-hidden="true">
+            <span class="text-secondary text-2xl font-bold">&#9733;</span>
+        </div>
+        <h2 class="font-bold text-lg text-secondary-dark">Consejos con IA</h2>
+        <p class="mt-2 text-secondary text-sm leading-relaxed">
+            Sugerencias personalizadas según TUS gastos reales, no consejos genéricos de internet.
+        </p>
+    </article>
+</section>
+
+<section class="mt-12 bg-accent/5 border border-accent/20 rounded-2xl p-6 sm:p-8 text-center">
+    <h2 class="text-xl sm:text-2xl font-bold text-secondary-dark">
+        ¿Listo para dejar de preguntarte "¿a dónde se fue mi dinero"?
+    </h2>
+    <p class="mt-2 text-secondary">Es gratis y solo toma un minuto empezar.</p>
+    <a asp-controller="Auth" asp-action="Register"
+       class="inline-block mt-5 bg-primary hover:bg-primary-dark transition-colors text-white font-bold px-8 py-3 rounded-full focus:outline-none focus:ring-4 focus:ring-primary-light/40"
+       aria-label="Registrarse ahora en FinanzApp">
+        Empezar ahora
+    </a>
+</section>

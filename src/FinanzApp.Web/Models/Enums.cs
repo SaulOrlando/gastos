@@ -7,3 +7,11 @@ public enum ExpenseCategory
     Comida = 2,
     Entretenimiento = 3
 }
+
+public enum IncomeCategory
+{
+    Beca = 0,
+    Mesada = 1,
+    Salario = 2,
+    Otro = 3
+}

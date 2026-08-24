@@ -1,0 +1,39 @@
+@model FinanzApp.Web.ViewModels.ExpenseFormViewModel
+@using FinanzApp.Web.Models
+
+<div asp-validation-summary="ModelOnly" class="text-red-500 text-sm bg-red-50 border border-red-200 rounded-lg p-3" role="alert"></div>
+
+<div>
+    <label asp-for="Amount" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
+    <div class="relative">
+        <input asp-for="Amount" type="number" step="0.01" min="0.01"
+               inputmode="decimal"
+               class="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-lg font-bold text-secondary-dark placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+               placeholder="0.00" />
+    </div>
+    <span asp-validation-for="Amount" class="text-red-500 text-sm mt-1 block"></span>
+</div>
+
+<div>
+    <label asp-for="Category" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
+    <select asp-for="Category" asp-items="Html.GetEnumSelectList<ExpenseCategory>()"
+            class="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-lg text-secondary-dark bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
+        <option value="" disabled selected>¿En qué fue el gasto?</option>
+    </select>
+    <span asp-validation-for="Category" class="text-red-500 text-sm mt-1 block"></span>
+</div>
+
+<div>
+    <label asp-for="Date" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
+    <input asp-for="Date" type="date"
+           class="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-secondary-dark bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent" />
+    <span asp-validation-for="Date" class="text-red-500 text-sm mt-1 block"></span>
+</div>
+
+<div>
+    <label asp-for="Note" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
+    <textarea asp-for="Note" rows="3" maxlength="500"
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 text-secondary-dark placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-y"
+              placeholder="Ej. café con amigos antes del examen"></textarea>
+    <span asp-validation-for="Note" class="text-red-500 text-sm mt-1 block"></span>
+</div>
