@@ -12,9 +12,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<Income> Incomes { get; set; }
     public DbSet<SavingsGoal> SavingsGoals => Set<SavingsGoal>();
     public DbSet<SavingsEntry> SavingsEntries => Set<SavingsEntry>();
     public DbSet<AITip> AITips => Set<AITip>();
+    public DbSet<UserBadge> UserBadges { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -31,6 +33,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             e.HasIndex(x => new { x.UserId, x.Date }).HasDatabaseName("IX_Expense_User_Date");
             e.HasIndex(x => new { x.UserId, x.Category }).HasDatabaseName("IX_Expense_User_Category");
             e.HasOne(x => x.User).WithMany(u => u.Expenses).HasForeignKey(x => x.UserId);
+        });
+
+        builder.Entity<Income>(e =>
+        {
+            e.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            e.HasIndex(x => new { x.UserId, x.Date }).HasDatabaseName("IX_Income_User_Date");
+            e.HasIndex(x => new { x.UserId, x.Category }).HasDatabaseName("IX_Income_User_Category");
+            e.HasOne(x => x.User).WithMany(u => u.Incomes).HasForeignKey(x => x.UserId);
+        });
+
+        builder.Entity<UserBadge>(e =>
+        {
+            e.HasIndex(x => x.UserId).HasDatabaseName("IX_UserBadge_User");
+            e.HasOne(x => x.User).WithMany(u => u.UserBadges).HasForeignKey(x => x.UserId);
         });
 
         builder.Entity<SavingsGoal>(e =>
