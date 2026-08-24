@@ -22,6 +22,13 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Auth/Login";
+    options.AccessDeniedPath = "/Auth/Login";
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+});
+
 builder.Services.AddControllersWithViews();
 
 // Dependency Injection: Repositories
@@ -29,6 +36,7 @@ builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 
 // Dependency Injection: Services
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
 
 var app = builder.Build();
 

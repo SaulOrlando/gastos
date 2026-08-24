@@ -45,4 +45,42 @@ public class ExpenseRepository : IExpenseRepository
             .OrderBy(e => e.Date)
             .ToListAsync();
     }
+
+    public Task<List<Expense>> GetAllByUserIdAsync(string userId)
+    {
+        return _context.Expenses
+            .AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .OrderByDescending(e => e.Date)
+            .ThenByDescending(e => e.CreatedAt)
+            .ToListAsync();
+    }
+
+    public Task<Expense?> GetByIdAsync(int id, string userId)
+    {
+        return _context.Expenses
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id && e.UserId == userId);
+    }
+
+    public async Task AddAsync(Expense expense)
+    {
+        _context.Expenses.Add(expense);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Expense expense)
+    {
+        _context.Expenses.Update(expense);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> DeleteAsync(int id, string userId)
+    {
+        var affectedRows = await _context.Expenses
+            .Where(e => e.Id == id && e.UserId == userId)
+            .ExecuteDeleteAsync();
+
+        return affectedRows > 0;
+    }
 }

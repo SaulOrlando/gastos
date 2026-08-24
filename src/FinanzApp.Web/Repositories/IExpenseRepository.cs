@@ -9,4 +9,14 @@ public interface IExpenseRepository
     Task<Dictionary<ExpenseCategory, decimal>> GetTotalExpensesByCategoryAsync(string userId, int year, int month);
 
     Task<List<Expense>> GetExpensesSinceAsync(string userId, DateTime fromDate);
+
+    Task<List<Expense>> GetAllByUserIdAsync(string userId);
+
+    Task<Expense?> GetByIdAsync(int id, string userId);
+
+    Task AddAsync(Expense expense);
+
+    Task UpdateAsync(Expense expense);
+
+    Task<bool> DeleteAsync(int id, string userId);
 }

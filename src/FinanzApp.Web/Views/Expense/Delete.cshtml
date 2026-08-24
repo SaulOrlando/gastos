@@ -1,0 +1,49 @@
+@model FinanzApp.Web.ViewModels.ExpenseFormViewModel
+@{
+    ViewData["Title"] = "Eliminar Gasto";
+}
+
+<div class="max-w-md mx-auto">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-red-500 text-center">
+        ¿Estás seguro de que deseas eliminar este gasto?
+    </h1>
+    <p class="mt-2 text-secondary text-center text-sm">
+        Esta acción no se puede deshacer.
+    </p>
+
+    <section class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8" aria-label="Detalles del gasto a eliminar">
+        <dl class="space-y-4">
+            <div class="flex justify-between items-center gap-4">
+                <dt class="text-sm font-semibold text-secondary uppercase tracking-wide">Monto</dt>
+                <dd class="font-extrabold text-xl text-secondary-dark">@ViewBag.CurrencySymbol@Model.Amount.ToString("N2")</dd>
+            </div>
+            <div class="flex justify-between items-center gap-4">
+                <dt class="text-sm font-semibold text-secondary uppercase tracking-wide">Categoría</dt>
+                <dd class="font-bold text-secondary-dark">@Model.Category</dd>
+            </div>
+            <div class="flex justify-between items-center gap-4">
+                <dt class="text-sm font-semibold text-secondary uppercase tracking-wide">Fecha</dt>
+                <dd class="font-bold text-secondary-dark">@Model.Date.ToString("dd MMM yyyy")</dd>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Note))
+            {
+                <div class="pt-2 border-t border-slate-100">
+                    <dt class="text-sm font-semibold text-secondary uppercase tracking-wide">Nota</dt>
+                    <dd class="mt-1 text-secondary">@Model.Note</dd>
+                </div>
+            }
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="mt-8 space-y-3" aria-label="Confirmar eliminación del gasto">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit"
+                    class="w-full bg-red-500 hover:bg-red-600 transition-colors text-white font-bold text-lg py-3.5 rounded-xl focus:outline-none focus:ring-4 focus:ring-red-200">
+                Sí, eliminar
+            </button>
+            <a asp-action="Index"
+               class="block w-full text-center border-2 border-slate-200 hover:border-secondary transition-colors text-secondary font-bold py-3 rounded-xl focus:outline-none focus:ring-4 focus:ring-slate-200">
+                Mejor no, volver
+            </a>
+        </form>
+    </section>
+</div>
