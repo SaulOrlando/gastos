@@ -1,0 +1,48 @@
+using FinanzApp.Web.Data;
+using FinanzApp.Web.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace FinanzApp.Web.Repositories;
+
+public class ExpenseRepository : IExpenseRepository
+{
+    private readonly ApplicationDbContext _context;
+
+    public ExpenseRepository(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public Task<List<Expense>> GetMonthlyExpensesAsync(string userId, int year, int month)
+    {
+        return _context.Expenses
+            .AsNoTracking()
+            .Where(e => e.UserId == userId
+                && e.Date.Year == year
+                && e.Date.Month == month)
+            .OrderBy(e => e.Date)
+            .ToListAsync();
+    }
+
+    public async Task<Dictionary<ExpenseCategory, decimal>> GetTotalExpensesByCategoryAsync(
+        string userId, int year, int month)
+    {
+        return await _context.Expenses
+            .AsNoTracking()
+            .Where(e => e.UserId == userId
+                && e.Date.Year == year
+                && e.Date.Month == month)
+            .GroupBy(e => e.Category)
+            .Select(g => new { Category = g.Key, Total = g.Sum(x => x.Amount) })
+            .ToDictionaryAsync(x => x.Category, x => x.Total);
+    }
+
+    public Task<List<Expense>> GetExpensesSinceAsync(string userId, DateTime fromDate)
+    {
+        return _context.Expenses
+            .AsNoTracking()
+            .Where(e => e.UserId == userId && e.Date >= fromDate)
+            .OrderBy(e => e.Date)
+            .ToListAsync();
+    }
+}

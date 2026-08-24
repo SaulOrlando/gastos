@@ -1,5 +1,7 @@
 using FinanzApp.Web.Data;
 using FinanzApp.Web.Models;
+using FinanzApp.Web.Repositories;
+using FinanzApp.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +23,12 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddControllersWithViews();
+
+// Dependency Injection: Repositories
+builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+
+// Dependency Injection: Services
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 

@@ -49,6 +49,10 @@
                             Hola, @(User.FindFirst("FullName")?.Value ?? User.Identity?.Name)
                         </li>
                         <li>
+                            <a asp-area="" asp-controller="Dashboard" asp-action="Index"
+                               class="text-white hover:text-accent-light transition-colors font-medium">Dashboard</a>
+                        </li>
+                        <li>
                             <form asp-controller="Auth" asp-action="Logout" method="post">
                                 <button type="submit"
                                         class="text-white hover:text-accent-light transition-colors font-medium focus:outline-none focus:underline cursor-pointer"
