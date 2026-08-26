@@ -31,4 +31,23 @@ public class HistoryController : Controller
         var model = await _historyService.GetMonthlyHistoryAsync(user.Id);
         return View(model);
     }
+
+    public async Task<IActionResult> Monthly(int year, int month)
+    {
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user is null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var model = await _historyService.GetMonthlySummaryAsync(user.Id, year, month);
+
+        if (model is null)
+        {
+            return NotFound();
+        }
+
+        return View(model);
+    }
 }

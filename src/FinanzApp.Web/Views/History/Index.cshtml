@@ -4,41 +4,10 @@
 }
 
 <!-- Header -->
-<header class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-    <div>
-        <h1 class="font-headline-xl text-headline-xl text-on-surface">Historial mensual</h1>
-        <p class="font-body-md text-body-md text-on-surface-variant">Revisa cómo fue tu mes a mes.</p>
-    </div>
-    <div class="flex items-center gap-4 mt-4 flex-wrap">
-        <a asp-controller="Dashboard" asp-action="Index"
-           class="flex items-center gap-2 bg-surface-container-highest text-on-surface-variant px-6 py-2 rounded-full font-label-md text-label-md hover:bg-surface-variant transition-colors">
-            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
-            Volver al panel
-        </a>
-    </div>
+<header class="mb-section-margin">
+    <h1 class="font-headline-xl text-headline-xl text-primary mb-2">Historial Mensual</h1>
+    <p class="font-body-md text-body-md text-on-surface-variant">Revisa el resumen de tus finanzas mes a mes.</p>
 </header>
-
-<!-- Resumen global -->
-<section class="grid grid-cols-1 md:grid-cols-2 gap-card-gap" aria-label="Resumen histórico">
-    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col justify-between h-[120px]">
-        <div class="flex items-center gap-2 text-on-surface-variant">
-            <span class="material-symbols-outlined icon-filled text-outline">calendar_month</span>
-            <h3 class="font-label-bold text-label-bold uppercase">Meses registrados</h3>
-        </div>
-        <div class="font-headline-xl text-headline-xl text-on-surface mt-auto">
-            @Model.Months.Count
-        </div>
-    </article>
-    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col justify-between h-[120px]">
-        <div class="flex items-center gap-2 text-on-surface-variant">
-            <span class="material-symbols-outlined icon-filled text-outline">payments</span>
-            <h3 class="font-label-bold text-label-bold uppercase">Total histórico</h3>
-        </div>
-        <div class="font-headline-xl text-headline-xl text-on-surface mt-auto">
-            @Model.CurrencySymbol@Model.TotalAllTime.ToString("N2")
-        </div>
-    </article>
-</section>
 
 @if (!Model.Months.Any())
 {
@@ -49,91 +18,129 @@
         </div>
         <h2 class="font-headline-lg text-headline-lg text-on-surface">Sin historial aún</h2>
         <p class="mt-2 font-body-md text-body-md text-on-surface-variant max-w-md mx-auto">
-            Cuando registres tu primer gasto, aquí aparecerá un resumen mes a mes de cómo manejas tu dinero.
+            Cuando registres tu primer gasto o ingreso, aquí aparecerá un resumen mes a mes.
         </p>
-        <a asp-controller="Expense" asp-action="Create"
-           class="inline-flex items-center gap-2 mt-6 bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
-            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-            Registrar mi primer gasto
-        </a>
+        <div class="flex items-center justify-center gap-4 mt-6 flex-wrap">
+            <a asp-controller="Expense" asp-action="Create"
+               class="inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
+                <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                Registrar mi primer gasto
+            </a>
+            <a asp-controller="Income" asp-action="Create"
+               class="inline-flex items-center gap-2 bg-transparent border-2 border-secondary text-secondary px-6 py-3 rounded-full font-label-md text-label-md hover:bg-secondary/5 transition-colors">
+                <span class="material-symbols-outlined" style="font-size: 18px;">trending_up</span>
+                Registrar ingreso
+            </a>
+        </div>
     </section>
 }
 else
 {
-    <!-- Timeline de meses -->
-    <section class="flex flex-col gap-6" aria-label="Historial por mes">
+    <!-- Bento Grid de meses -->
+    <div id="monthsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-card-gap">
+        @{ var index = 0; }
         @foreach (var month in Model.Months)
         {
-            var monthColor = month.IsOverBudget ? "error" : "secondary";
-            var now = DateTime.UtcNow;
-            var isCurrentMonth = month.Year == now.Year && month.Month == now.Month;
-
-            <article class="bg-surface-container-lowest rounded-[16px] shadow-ambient overflow-hidden transition-all duration-300 hover:shadow-ambient-hover"
-                     aria-label="Historial de @month.MonthName">
-                <!-- Encabezado del mes -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-container-padding bg-surface-container-low">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full @(isCurrentMonth ? "bg-secondary-container" : "bg-surface-container-high") flex items-center justify-center">
-                            <span class="material-symbols-outlined @(isCurrentMonth ? "text-on-secondary-container" : "text-on-surface-variant")">
-                                @(isCurrentMonth ? "today" : "calendar_month")
-                            </span>
-                        </div>
-                        <div>
-                            <h3 class="font-headline-lg text-headline-lg text-on-surface capitalize">
-                                @month.MonthName
-                            </h3>
-                            <p class="font-body-sm text-body-sm text-on-surface-variant">
-                                @month.ExpenseCount gasto@(month.ExpenseCount != 1 ? "s" : "")
-                                @if (month.HasBudget)
-                                {
-                                    <span> · Presupuesto: @Model.CurrencySymbol@month.Budget.ToString("N2")</span>
-                                }
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-baseline gap-2">
-                        <span class="font-headline-xl text-headline-xl @(month.IsOverBudget ? "text-error" : "text-on-surface")">
-                            @Model.CurrencySymbol@month.TotalAmount.ToString("N2")
-                        </span>
-                        @if (month.HasBudget)
+            <article class="month-card bg-surface-container-lowest rounded-xl p-container-padding shadow-ambient transition-all duration-300 hover:shadow-[0_12px_40px_0_rgba(0,67,35,0.08)] hover:-translate-y-0.5 flex flex-col h-full border border-surface-container-high"
+                     data-index="@index">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="font-headline-lg text-headline-lg text-primary capitalize">@month.MonthName</h2>
+                        @if (month.IsCurrentMonth)
                         {
-                            <span class="font-label-md text-label-md @(month.IsOverBudget ? "text-error" : "text-secondary")">
-                                @(month.IsOverBudget ? "Excedido" : "Restante: " + Model.CurrencySymbol + month.Remaining.ToString("N2"))
-                            </span>
+                            <span class="inline-block mt-1 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full font-label-bold text-label-bold">Actual</span>
                         }
+                    </div>
+                    <span class="material-symbols-outlined @(month.IsCurrentMonth ? "text-secondary" : "text-outline")">
+                        @(month.IsCurrentMonth ? "calendar_month" : "history")
+                    </span>
+                </div>
+
+                <div class="flex-grow space-y-4 mb-8">
+                    <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+                        <span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px] text-primary">arrow_downward</span>
+                            Ingresos
+                        </span>
+                        <span class="font-label-bold text-label-bold text-primary">+@Model.CurrencySymbol@month.TotalIncome.ToString("N2")</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+                        <span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px] text-error">arrow_upward</span>
+                            Gastos
+                        </span>
+                        <span class="font-label-bold text-label-bold text-error">-@Model.CurrencySymbol@month.TotalExpenses.ToString("N2")</span>
                     </div>
                 </div>
 
-                <!-- Barra de progreso del presupuesto -->
-                @if (month.HasBudget)
-                {
-                    <div class="px-container-padding pb-3">
-                        <div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
-                            <div class="h-full @(month.IsOverBudget ? "bg-error" : "bg-secondary") rounded-full transition-all duration-500"
-                                 style="width: @month.BudgetPercent%;"></div>
-                        </div>
-                    </div>
-                }
-
-                <!-- Desglose por categoría -->
-                @if (month.Categories.Any())
-                {
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-container-padding pb-container-padding">
-                        @foreach (var cat in month.Categories)
-                        {
-                            <div class="bg-surface-container rounded-[12px] p-3 flex flex-col gap-1">
-                                <span class="font-label-bold text-label-bold uppercase text-on-surface-variant">@cat.CategoryName</span>
-                                <span class="font-headline-lg text-headline-lg text-on-surface">
-                                    @Model.CurrencySymbol@cat.Total.ToString("N2")
-                                </span>
-                                <span class="font-body-sm text-body-sm text-on-surface-variant">
-                                    @cat.Count gasto@(cat.Count != 1 ? "s" : "") · @cat.Percent%
-                                </span>
-                            </div>
-                        }
-                    </div>
-                }
+                <a asp-action="Monthly" asp-route-year="@month.Year" asp-route-month="@month.Month"
+                   class="w-full mt-auto flex justify-center items-center gap-2 @(month.IsCurrentMonth ? "bg-secondary-fixed text-on-secondary-fixed-variant hover:-translate-y-0.5" : "bg-surface-container-high text-primary hover:bg-surface-container") py-3 rounded-full font-label-bold text-label-bold transition-all group">
+                    Ver resumen
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">
+                        @(month.IsCurrentMonth ? "arrow_forward" : "chevron_right")
+                    </span>
+                </a>
             </article>
+            index++;
         }
-    </section>
+    </div>
+
+    <!-- Paginación -->
+    <nav id="pagination" class="mt-8 flex justify-center items-center gap-4" aria-label="Paginación del historial">
+        <button id="prevPage" onclick="changePage(-1)"
+                class="flex items-center justify-center w-10 h-10 rounded-full border border-outline-variant text-outline hover:bg-surface-container transition-colors"
+                disabled>
+            <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <div id="pageDots" class="flex gap-2"></div>
+        <button id="nextPage" onclick="changePage(1)"
+                class="flex items-center justify-center w-10 h-10 rounded-full border border-outline-variant text-outline hover:bg-surface-container transition-colors">
+            <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+    </nav>
+
+    <script>
+        (function () {
+            const perPage = 3;
+            const cards = document.querySelectorAll('.month-card');
+            const totalPages = Math.ceil(cards.length / perPage);
+            let currentPage = 0;
+
+            function render() {
+                cards.forEach(function (card, i) {
+                    card.style.display = (i >= currentPage * perPage && i < (currentPage + 1) * perPage) ? '' : 'none';
+                });
+
+                var prev = document.getElementById('prevPage');
+                var next = document.getElementById('nextPage');
+                prev.disabled = currentPage === 0;
+                next.disabled = currentPage >= totalPages - 1;
+
+                prev.className = 'flex items-center justify-center w-10 h-10 rounded-full border transition-colors ' +
+                    (currentPage === 0 ? 'border-outline-variant text-outline' : 'border-primary text-primary hover:bg-primary-container/10');
+                next.className = 'flex items-center justify-center w-10 h-10 rounded-full border transition-colors ' +
+                    (currentPage >= totalPages - 1 ? 'border-outline-variant text-outline' : 'border-primary text-primary hover:bg-primary-container/10');
+
+                var dots = document.getElementById('pageDots');
+                dots.innerHTML = '';
+                for (var p = 0; p < totalPages; p++) {
+                    var span = document.createElement('span');
+                    span.className = 'w-2 h-2 rounded-full cursor-pointer transition-colors ' + (p === currentPage ? 'bg-primary' : 'bg-outline-variant');
+                    span.setAttribute('data-page', p);
+                    span.addEventListener('click', function () {
+                        currentPage = parseInt(this.getAttribute('data-page'));
+                        render();
+                    });
+                    dots.appendChild(span);
+                }
+            }
+
+            window.changePage = function (delta) {
+                currentPage = Math.max(0, Math.min(totalPages - 1, currentPage + delta));
+                render();
+            };
+
+            render();
+        })();
+    </script>
 }

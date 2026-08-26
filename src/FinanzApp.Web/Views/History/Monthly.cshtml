@@ -1,0 +1,108 @@
+@model FinanzApp.Web.ViewModels.MonthlySummaryViewModel
+@{
+    ViewData["Title"] = $"Resumen de {Model.MonthName}";
+    var isNegative = Model.Remaining < 0;
+}
+
+<div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <header class="mb-8">
+        <a asp-action="Index" class="inline-flex items-center gap-1 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors mb-4">
+            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+            Historial
+        </a>
+        <div class="flex items-center gap-3">
+            <h1 class="font-headline-xl text-headline-xl text-primary capitalize">@Model.MonthName</h1>
+            @if (Model.IsCurrentMonth)
+            {
+                <span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full font-label-bold text-label-bold">Actual</span>
+            }
+        </div>
+    </header>
+
+    <!-- Resumen cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-card-gap mb-8" aria-label="Resumen del mes">
+        <!-- Ingresos -->
+        <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col justify-between h-[120px]">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined icon-filled text-primary">arrow_downward</span>
+                <h3 class="font-label-bold text-label-bold uppercase">Ingresos</h3>
+            </div>
+            <div class="font-headline-lg text-headline-lg text-primary mt-auto">
+                +@Model.CurrencySymbol@Model.TotalIncome.ToString("N2")
+            </div>
+        </article>
+
+        <!-- Gastos -->
+        <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col justify-between h-[120px]">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined icon-filled text-error">arrow_upward</span>
+                <h3 class="font-label-bold text-label-bold uppercase">Gastos</h3>
+            </div>
+            <div class="font-headline-lg text-headline-lg text-error mt-auto">
+                -@Model.CurrencySymbol@Model.TotalExpenses.ToString("N2")
+            </div>
+        </article>
+
+        <!-- Disponible -->
+        <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col justify-between h-[120px]">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined icon-filled @(isNegative ? "text-error" : "text-secondary")">savings</span>
+                <h3 class="font-label-bold text-label-bold uppercase">Disponible</h3>
+            </div>
+            <div class="font-headline-lg text-headline-lg @(isNegative ? "text-error" : "text-secondary") mt-auto">
+                @(isNegative ? "-" : "+")@Model.CurrencySymbol@Math.Abs(Model.Remaining).ToString("N2")
+            </div>
+        </article>
+    </section>
+
+    <!-- Desglose de gastos -->
+    @if (Model.ExpenseCategories.Any())
+    {
+        <section class="mb-8" aria-label="Desglose de gastos">
+            <h2 class="font-headline-lg text-headline-lg text-on-surface mb-4">Gastos por categoría</h2>
+            <div class="bg-surface-container-lowest rounded-[16px] shadow-ambient overflow-hidden">
+                @foreach (var cat in Model.ExpenseCategories)
+                {
+                    <div class="flex items-center justify-between p-container-padding border-b border-surface-container last:border-b-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-error-container/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-error" style="font-size: 20px;">receipt_long</span>
+                            </div>
+                            <div>
+                                <span class="font-label-bold text-label-bold text-on-surface block">@cat.CategoryName</span>
+                                <span class="font-body-sm text-body-sm text-on-surface-variant">@cat.Count gasto@(cat.Count != 1 ? "s" : "") · @cat.Percent%</span>
+                            </div>
+                        </div>
+                        <span class="font-label-bold text-label-bold text-error">-@Model.CurrencySymbol@cat.Total.ToString("N2")</span>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <!-- Desglose de ingresos -->
+    @if (Model.IncomeCategories.Any())
+    {
+        <section aria-label="Desglose de ingresos">
+            <h2 class="font-headline-lg text-headline-lg text-on-surface mb-4">Ingresos por categoría</h2>
+            <div class="bg-surface-container-lowest rounded-[16px] shadow-ambient overflow-hidden">
+                @foreach (var cat in Model.IncomeCategories)
+                {
+                    <div class="flex items-center justify-between p-container-padding border-b border-surface-container last:border-b-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary" style="font-size: 20px;">account_balance</span>
+                            </div>
+                            <div>
+                                <span class="font-label-bold text-label-bold text-on-surface block">@cat.CategoryName</span>
+                                <span class="font-body-sm text-body-sm text-on-surface-variant">@cat.Count ingreso@(cat.Count != 1 ? "s" : "") · @cat.Percent%</span>
+                            </div>
+                        </div>
+                        <span class="font-label-bold text-label-bold text-primary">+@Model.CurrencySymbol@cat.Total.ToString("N2")</span>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+</div>
