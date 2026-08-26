@@ -4,6 +4,8 @@ public class DashboardViewModel
 {
     public decimal TotalSpent { get; set; }
 
+    public decimal TotalIncome { get; set; }
+
     public decimal? MonthlyBudget { get; set; }
 
     public decimal RemainingBudget { get; set; }
@@ -25,4 +27,6 @@ public class DashboardViewModel
     public string LabelsDiasJson { get; set; } = "[]";
 
     public string ValoresDiasJson { get; set; } = "[]";
+
+    public string ValoresIngresosDiasJson { get; set; } = "[]";
 }

@@ -44,4 +44,24 @@ public class IncomeRepository : IIncomeRepository
 
         return affectedRows > 0;
     }
+
+    public Task<List<Income>> GetMonthlyIncomesAsync(string userId, int year, int month)
+    {
+        return _context.Incomes
+            .AsNoTracking()
+            .Where(i => i.UserId == userId
+                && i.Date.Year == year
+                && i.Date.Month == month)
+            .OrderBy(i => i.Date)
+            .ToListAsync();
+    }
+
+    public Task<List<Income>> GetIncomesSinceAsync(string userId, DateTime fromDate)
+    {
+        return _context.Incomes
+            .AsNoTracking()
+            .Where(i => i.UserId == userId && i.Date >= fromDate)
+            .OrderBy(i => i.Date)
+            .ToListAsync();
+    }
 }

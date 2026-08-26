@@ -19,13 +19,16 @@ public class DashboardService : IDashboardService
     };
 
     private readonly IExpenseRepository _expenseRepository;
+    private readonly IIncomeRepository _incomeRepository;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public DashboardService(
         IExpenseRepository expenseRepository,
+        IIncomeRepository incomeRepository,
         UserManager<ApplicationUser> userManager)
     {
         _expenseRepository = expenseRepository;
+        _incomeRepository = incomeRepository;
         _userManager = userManager;
     }
 
@@ -39,15 +42,20 @@ public class DashboardService : IDashboardService
         var monthlyExpenses = await _expenseRepository.GetMonthlyExpensesAsync(userId, now.Year, now.Month);
         var totalsByCategory = await _expenseRepository.GetTotalExpensesByCategoryAsync(userId, now.Year, now.Month);
         var recentExpenses = await _expenseRepository.GetExpensesSinceAsync(userId, now.Date.AddDays(-(TrendDays - 1)));
+        var recentIncomes = await _incomeRepository.GetIncomesSinceAsync(userId, now.Date.AddDays(-(TrendDays - 1)));
 
         var totalSpent = monthlyExpenses.Sum(e => e.Amount);
+        var totalIncome = recentIncomes
+            .Where(i => i.Date.Year == now.Year && i.Date.Month == now.Month)
+            .Sum(i => i.Amount);
         var monthlyBudget = user.MonthlyBudget;
 
         return new DashboardViewModel
         {
             TotalSpent = totalSpent,
+            TotalIncome = totalIncome,
             MonthlyBudget = monthlyBudget,
-            RemainingBudget = (monthlyBudget ?? 0) - totalSpent,
+            RemainingBudget = totalIncome - totalSpent,
             MonthName = now.ToString("MMMM yyyy"),
             CurrencySymbol = GetCurrencySymbol(user.Currency),
             LabelsCategoriaJson = JsonSerializer.Serialize(
@@ -57,11 +65,12 @@ public class DashboardService : IDashboardService
             ColoresCategoriaJson = JsonSerializer.Serialize(
                 totalsByCategory.Keys.Select(c => CategoryColors[c]).ToArray()),
             LabelsDiasJson = JsonSerializer.Serialize(BuildDayLabels(now)),
-            ValoresDiasJson = JsonSerializer.Serialize(BuildDailyTotals(recentExpenses, now))
+            ValoresDiasJson = JsonSerializer.Serialize(BuildDailyExpenseTotals(recentExpenses, now)),
+            ValoresIngresosDiasJson = JsonSerializer.Serialize(BuildDailyIncomeTotals(recentIncomes, now))
         };
     }
 
-    private static decimal[] BuildDailyTotals(List<Expense> expenses, DateTime today)
+    private static decimal[] BuildDailyExpenseTotals(List<Expense> expenses, DateTime today)
     {
         var dailyTotals = new decimal[TrendDays];
         var firstDay = today.Date.AddDays(-(TrendDays - 1));
@@ -72,6 +81,23 @@ public class DashboardService : IDashboardService
             if (dayIndex >= 0 && dayIndex < TrendDays)
             {
                 dailyTotals[dayIndex] += expense.Amount;
+            }
+        }
+
+        return dailyTotals.Select(v => Math.Round(v, 2)).ToArray();
+    }
+
+    private static decimal[] BuildDailyIncomeTotals(List<Income> incomes, DateTime today)
+    {
+        var dailyTotals = new decimal[TrendDays];
+        var firstDay = today.Date.AddDays(-(TrendDays - 1));
+
+        foreach (var income in incomes)
+        {
+            var dayIndex = (income.Date.Date - firstDay).Days;
+            if (dayIndex >= 0 && dayIndex < TrendDays)
+            {
+                dailyTotals[dayIndex] += income.Amount;
             }
         }
 

@@ -44,63 +44,60 @@
 }
 
 <!-- Top Metrics Cards -->
-<section class="grid grid-cols-1 md:grid-cols-3 gap-card-gap" aria-label="Resumen financiero del mes">
-    <!-- Card 1: Gasto Total -->
-    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 flex flex-col justify-between h-[160px]">
+<section class="grid grid-cols-1 md:grid-cols-4 gap-card-gap" aria-label="Resumen financiero del mes">
+    <!-- Card 1: Ingreso Total -->
+    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 hover:shadow-[0_12px_40px_0_rgba(0,67,35,0.08)] hover:-translate-y-0.5 flex flex-col justify-between h-[160px]">
         <div class="flex justify-between items-start">
             <div class="flex items-center gap-2 text-on-surface-variant">
-                <span class="material-symbols-outlined icon-filled text-outline">account_balance_wallet</span>
+                <span class="material-symbols-outlined icon-filled text-primary">account_balance</span>
+                <h3 class="font-label-bold text-label-bold uppercase">Ingreso total del mes</h3>
+            </div>
+            <span class="material-symbols-outlined text-outline-variant" style="font-size: 40px; opacity: 0.3;">attach_money</span>
+        </div>
+        <div class="font-headline-xl text-headline-xl text-primary mt-auto">
+            @Model.CurrencySymbol@Model.TotalIncome.ToString("N2")
+        </div>
+    </article>
+
+    <!-- Card 2: Gasto Total -->
+    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 hover:shadow-[0_12px_40px_0_rgba(0,67,35,0.08)] hover:-translate-y-0.5 flex flex-col justify-between h-[160px]">
+        <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined icon-filled text-error">account_balance_wallet</span>
                 <h3 class="font-label-bold text-label-bold uppercase">Gasto total del mes</h3>
             </div>
             <span class="material-symbols-outlined text-outline-variant" style="font-size: 40px; opacity: 0.3;">payments</span>
         </div>
-        <div class="font-headline-xl text-headline-xl text-on-surface mt-auto">
+        <div class="font-headline-xl text-headline-xl text-error mt-auto">
             @Model.CurrencySymbol@Model.TotalSpent.ToString("N2")
         </div>
     </article>
 
-    <!-- Card 2: Presupuesto Restante -->
-    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 flex flex-col justify-between h-[160px]">
+    <!-- Card 3: Presupuesto Restante -->
+    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 hover:shadow-[0_12px_40px_0_rgba(0,67,35,0.08)] hover:-translate-y-0.5 flex flex-col justify-between h-[160px]">
         <div class="flex justify-between items-start">
             <div class="flex items-center gap-2 text-on-surface-variant">
                 <span class="material-symbols-outlined icon-filled text-outline">savings</span>
-                <h3 class="font-label-bold text-label-bold uppercase">Presupuesto restante</h3>
+                <h3 class="font-label-bold text-label-bold uppercase">Disponible</h3>
             </div>
             <span class="material-symbols-outlined text-outline-variant" style="font-size: 40px; opacity: 0.3;">stream_apps</span>
         </div>
         <div class="flex flex-col gap-3 mt-auto">
-            @if (Model.HasBudget)
-            {
-                var overBudget = Model.RemainingBudget < 0;
-                var budgetPercent = Model.MonthlyBudget > 0
-                    ? Math.Min(100, Math.Max(0, (int)(Model.RemainingBudget / Model.MonthlyBudget.Value * 100)))
-                    : 0;
-                <div class="font-headline-lg text-headline-lg @(overBudget ? "text-error" : "text-secondary")">
-                    @Model.CurrencySymbol@Model.RemainingBudget.ToString("N2")
-                </div>
-                <div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
-                    <div class="h-full @(overBudget ? "bg-error" : "bg-secondary") rounded-full transition-all duration-500" style="width: @budgetPercent%;"></div>
-                </div>
+            @{
+                var isNegative = Model.RemainingBudget < 0;
             }
-            else
-            {
-                <div class="font-body-md text-body-md text-on-surface-variant">Sin presupuesto aún</div>
-                <form asp-controller="Dashboard" asp-action="SetBudget" method="post" class="flex gap-2" aria-label="Establecer presupuesto mensual">
-                    <input type="number" name="amount" min="0" step="0.01"
-                           placeholder="Ej. 3500" required
-                           aria-label="Monto del presupuesto mensual"
-                           class="w-full rounded-[12px] bg-surface-container-high border border-outline-variant px-3 py-2 text-on-surface font-body-sm text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                    <button type="submit"
-                            class="shrink-0 bg-primary hover:opacity-90 transition-opacity text-on-primary font-bold px-4 py-2 rounded-full font-label-md text-label-md focus:outline-none focus:ring-4 focus:ring-primary/20">
-                        Guardar
-                    </button>
-                </form>
-            }
+            <div class="font-headline-lg text-headline-lg @(isNegative ? "text-error" : "text-secondary")">
+                @Model.CurrencySymbol@Model.RemainingBudget.ToString("N2")
+            </div>
+            <div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+                <div class="h-full @(isNegative ? "bg-error" : "bg-secondary") rounded-full transition-all duration-500"
+                     style="width: @(isNegative ? "100" : Math.Min(100, Math.Max(0, (int)(Model.TotalIncome > 0 ? Model.RemainingBudget / Model.TotalIncome * 100 : 0))))%;"></div>
+            </div>
         </div>
     </article>
 
-    <!-- Card 3: Meta de Ahorro (placeholder) -->
-    <article class="bg-surface-container-low rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 flex flex-col justify-between h-[160px] border border-outline-variant/30">
+    <!-- Card 4: Meta de Ahorro (placeholder) -->
+    <article class="bg-surface-container-low rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 hover:shadow-[0_12px_40px_0_rgba(0,67,35,0.08)] hover:-translate-y-0.5 flex flex-col justify-between h-[160px] border border-outline-variant/30">
         <div class="flex justify-between items-start">
             <div class="flex items-center gap-2 text-primary">
                 <span class="material-symbols-outlined icon-filled">flag</span>
@@ -124,40 +121,44 @@
 {
     <!-- Charts Section -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-card-gap">
-        <!-- Distribución de Gastos -->
+        <!-- Balance (Ingresos vs Gastos) -->
         <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col gap-6">
             <div class="flex items-center justify-between">
-                <h3 class="font-headline-lg text-headline-lg text-on-surface">Distribución de Gastos</h3>
-                <span class="material-symbols-outlined text-outline">pie_chart</span>
+                <h3 class="font-headline-lg text-headline-lg text-on-surface">Balance (Ingresos vs Gastos)</h3>
+                <span class="material-symbols-outlined text-outline">compare_arrows</span>
             </div>
             <div class="flex flex-col md:flex-row items-center justify-center gap-8 py-4">
-                <div class="relative w-48 h-48">
-                    <canvas id="donutChart" role="img"
-                            aria-label="Gráfico de dona con tu distribución de gastos por categoría"></canvas>
+                <!-- Donut: Gastos -->
+                <div class="relative w-40 h-40">
+                    <canvas id="expenseDonut" role="img"
+                            aria-label="Gráfico de dona con tus gastos totales del mes"></canvas>
                 </div>
-                <div id="donutLegend" class="grid grid-cols-2 gap-x-8 gap-y-4">
-                    <!-- Legend populated by JS -->
+                <!-- Donut: Ingresos -->
+                <div class="relative w-40 h-40">
+                    <canvas id="incomeDonut" role="img"
+                            aria-label="Gráfico de dona con tus ingresos totales del mes"></canvas>
                 </div>
-                <p class="sr-only">
-                    Total gastado este mes: @Model.CurrencySymbol@Model.TotalSpent.ToString("N2").
-                </p>
             </div>
+            <p class="sr-only">
+                Ingresos: @Model.CurrencySymbol@Model.TotalIncome.ToString("N2").
+                Gastos: @Model.CurrencySymbol@Model.TotalSpent.ToString("N2").
+            </p>
         </article>
 
-        <!-- Tendencia de Gasto -->
+        <!-- Tendencia (Ingresos vs Gastos) -->
         <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col gap-6">
             <div class="flex items-center justify-between">
                 <div class="flex flex-col">
-                    <h3 class="font-headline-lg text-headline-lg text-on-surface">Tendencia de Gasto</h3>
+                    <h3 class="font-headline-lg text-headline-lg text-on-surface">Tendencia (Ingresos vs Gastos)</h3>
                     <span class="font-body-sm text-body-sm text-on-surface-variant">(30 días)</span>
                 </div>
                 <span class="material-symbols-outlined text-outline">trending_up</span>
             </div>
             <div class="relative w-full h-48 mt-4">
-                <canvas id="lineChart" role="img"
-                        aria-label="Gráfico de línea con tu gasto diario de los últimos 30 días"></canvas>
+                <canvas id="trendChart" role="img"
+                        aria-label="Gráfico de línea con ingresos y gastos diarios de los últimos 30 días"></canvas>
             </div>
-            <p class="sr-only">Gastos diarios de los últimos 30 días.</p>
+            <p class="sr-only">Tendencia diaria de ingresos y gastos de los últimos 30 días.</p>
         </article>
     </section>
 }
@@ -173,11 +174,18 @@ else
             Cuando registres tu primer gasto, esta sección cobrará vida con gráficas
             de a dónde va tu dinero. Empieza anotando ese café de hoy.
         </p>
-        <a asp-controller="Expense" asp-action="Create"
-           class="inline-flex items-center gap-2 mt-6 bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
-            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-            Registrar mi primer gasto
-        </a>
+        <div class="flex items-center justify-center gap-4 mt-6 flex-wrap">
+            <a asp-controller="Expense" asp-action="Create"
+               class="inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
+                <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                Registrar mi primer gasto
+            </a>
+            <a asp-controller="Income" asp-action="Create"
+               class="inline-flex items-center gap-2 bg-transparent border-2 border-secondary text-secondary px-6 py-3 rounded-full font-label-md text-label-md hover:bg-secondary/5 transition-colors">
+                <span class="material-symbols-outlined" style="font-size: 18px;">trending_up</span>
+                Registrar ingreso
+            </a>
+        </div>
     </section>
 }
 
@@ -192,14 +200,17 @@ else
             const catColors = @Html.Raw(Model.ColoresCategoriaJson);
             const dayLabels = @Html.Raw(Model.LabelsDiasJson);
             const dayValues = @Html.Raw(Model.ValoresDiasJson);
+            const incomeDayValues = @Html.Raw(Model.ValoresIngresosDiasJson);
+            const totalIncome = @Model.TotalIncome;
+            const totalSpent = @Model.TotalSpent;
 
             Chart.defaults.font.family = 'Plus Jakarta Sans, system-ui, sans-serif';
             Chart.defaults.color = '#404941';
 
-            // --- Donut Chart ---
-            const donutCanvas = document.getElementById('donutChart');
-            if (donutCanvas) {
-                new Chart(donutCanvas, {
+            // --- Donut: Gastos por categoría ---
+            const expenseDonutCanvas = document.getElementById('expenseDonut');
+            if (expenseDonutCanvas && catLabels.length > 0) {
+                new Chart(expenseDonutCanvas, {
                     type: 'doughnut',
                     data: {
                         labels: catLabels,
@@ -226,59 +237,139 @@ else
                                 }
                             }
                         }
-                    }
+                    },
+                    plugins: [{
+                        id: 'centerText',
+                        afterDraw: function (chart) {
+                            const { ctx, chartArea } = chart;
+                            const centerX = (chartArea.left + chartArea.right) / 2;
+                            const centerY = (chartArea.top + chartArea.bottom) / 2;
+                            ctx.save();
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.font = 'bold 18px Manrope';
+                            ctx.fillStyle = '#ba1a1a';
+                            ctx.fillText('$' + totalSpent.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }), centerX, centerY - 8);
+                            ctx.font = '500 12px Plus Jakarta Sans';
+                            ctx.fillStyle = '#404941';
+                            ctx.fillText('Gastos', centerX, centerY + 12);
+                            ctx.restore();
+                        }
+                    }]
                 });
-
-                // Build custom legend
-                const legendContainer = document.getElementById('donutLegend');
-                if (legendContainer && catLabels.length > 0) {
-                    const total = catValues.reduce((a, b) => a + b, 0);
-                    legendContainer.innerHTML = catLabels.map((label, i) => {
-                        const pct = total > 0 ? ((catValues[i] / total) * 100).toFixed(0) : 0;
-                        return '<div class="flex flex-col gap-1">' +
-                            '<div class="flex items-center gap-2">' +
-                            '<div class="w-3 h-3 rounded-full" style="background-color: ' + catColors[i] + ';"></div>' +
-                            '<span class="font-body-sm text-body-sm text-on-surface">' + label + '</span>' +
-                            '</div>' +
-                            '<span class="font-label-md text-label-md text-on-surface-variant pl-5">(' + pct + '%)</span>' +
-                            '</div>';
-                    }).join('');
-                }
             }
 
-            // --- Line Chart ---
-            const lineCanvas = document.getElementById('lineChart');
+            // --- Donut: Ingresos ---
+            const incomeDonutCanvas = document.getElementById('incomeDonut');
+            if (incomeDonutCanvas) {
+                new Chart(incomeDonutCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Ingresos'],
+                        datasets: [{
+                            data: [totalIncome],
+                            backgroundColor: ['#004323'],
+                            borderWidth: 3,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '65%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    },
+                    plugins: [{
+                        id: 'centerText',
+                        afterDraw: function (chart) {
+                            const { ctx, chartArea } = chart;
+                            const centerX = (chartArea.left + chartArea.right) / 2;
+                            const centerY = (chartArea.top + chartArea.bottom) / 2;
+                            ctx.save();
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.font = 'bold 18px Manrope';
+                            ctx.fillStyle = '#004323';
+                            ctx.fillText('$' + totalIncome.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }), centerX, centerY - 8);
+                            ctx.font = '500 12px Plus Jakarta Sans';
+                            ctx.fillStyle = '#404941';
+                            ctx.fillText('Ingresos', centerX, centerY + 12);
+                            ctx.restore();
+                        }
+                    }]
+                });
+            }
+
+            // --- Line Chart: Tendencia Ingresos vs Gastos ---
+            const lineCanvas = document.getElementById('trendChart');
             if (lineCanvas) {
                 new Chart(lineCanvas, {
                     type: 'line',
                     data: {
                         labels: dayLabels,
-                        datasets: [{
-                            label: 'Gasto del día',
-                            data: dayValues,
-                            borderColor: '#67faa4',
-                            backgroundColor: function (ctx) {
-                                const chart = ctx.chart;
-                                const { ctx: canvasCtx, chartArea } = chart;
-                                if (!chartArea) return 'rgba(103, 250, 164, 0.1)';
-                                const gradient = canvasCtx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                                gradient.addColorStop(0, 'rgba(103, 250, 164, 0)');
-                                gradient.addColorStop(1, 'rgba(103, 250, 164, 0.2)');
-                                return gradient;
+                        datasets: [
+                            {
+                                label: 'Ingresos del día',
+                                data: incomeDayValues,
+                                borderColor: '#004323',
+                                backgroundColor: function (ctx) {
+                                    const chart = ctx.chart;
+                                    const { ctx: canvasCtx, chartArea } = chart;
+                                    if (!chartArea) return 'rgba(0, 67, 35, 0.1)';
+                                    const gradient = canvasCtx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                                    gradient.addColorStop(0, 'rgba(0, 67, 35, 0)');
+                                    gradient.addColorStop(1, 'rgba(0, 67, 35, 0.15)');
+                                    return gradient;
+                                },
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#004323',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                borderWidth: 3
                             },
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 3,
-                            pointBackgroundColor: '#67faa4',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            borderWidth: 3
-                        }]
+                            {
+                                label: 'Gastos del día',
+                                data: dayValues,
+                                borderColor: '#ba1a1a',
+                                backgroundColor: function (ctx) {
+                                    const chart = ctx.chart;
+                                    const { ctx: canvasCtx, chartArea } = chart;
+                                    if (!chartArea) return 'rgba(186, 26, 26, 0.1)';
+                                    const gradient = canvasCtx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                                    gradient.addColorStop(0, 'rgba(186, 26, 26, 0)');
+                                    gradient.addColorStop(1, 'rgba(186, 26, 26, 0.15)');
+                                    return gradient;
+                                },
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#ba1a1a',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                borderWidth: 3
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    padding: 16,
+                                    font: { family: 'Plus Jakarta Sans', size: 12 }
+                                }
+                            }
+                        },
                         scales: {
                             y: {
                                 beginAtZero: true,
