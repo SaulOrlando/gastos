@@ -430,6 +430,10 @@ FodyWeavers.xsd
 
 ## --- FinanzApp: reglas propias ---
 
+# Config files with secrets
+mcp.json
+opencode.json
+
 # Salida de compilación (cualquier profundidad)
 **/[Bb]in/
 **/[Oo]bj/
