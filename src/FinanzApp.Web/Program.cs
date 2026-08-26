@@ -37,6 +37,7 @@ builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 // Dependency Injection: Services
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IHistoryService, HistoryService>();
 
 var app = builder.Build();
 

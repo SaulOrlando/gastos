@@ -83,4 +83,17 @@ public class ExpenseRepository : IExpenseRepository
 
         return affectedRows > 0;
     }
+
+    public async Task<List<(int Year, int Month)>> GetDistinctMonthsAsync(string userId)
+    {
+        return await _context.Expenses
+            .AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .Select(e => new { e.Date.Year, e.Date.Month })
+            .Distinct()
+            .OrderByDescending(x => x.Year)
+            .ThenByDescending(x => x.Month)
+            .Select(x => new ValueTuple<int, int>(x.Year, x.Month))
+            .ToListAsync();
+    }
 }

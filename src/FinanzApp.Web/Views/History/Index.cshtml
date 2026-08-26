@@ -1,0 +1,139 @@
+@model FinanzApp.Web.ViewModels.HistoryViewModel
+@{
+    ViewData["Title"] = "Historial Mensual";
+}
+
+<!-- Header -->
+<header class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface">Historial mensual</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant">Revisa cómo fue tu mes a mes.</p>
+    </div>
+    <div class="flex items-center gap-4 mt-4 flex-wrap">
+        <a asp-controller="Dashboard" asp-action="Index"
+           class="flex items-center gap-2 bg-surface-container-highest text-on-surface-variant px-6 py-2 rounded-full font-label-md text-label-md hover:bg-surface-variant transition-colors">
+            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+            Volver al panel
+        </a>
+    </div>
+</header>
+
+<!-- Resumen global -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-card-gap" aria-label="Resumen histórico">
+    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col justify-between h-[120px]">
+        <div class="flex items-center gap-2 text-on-surface-variant">
+            <span class="material-symbols-outlined icon-filled text-outline">calendar_month</span>
+            <h3 class="font-label-bold text-label-bold uppercase">Meses registrados</h3>
+        </div>
+        <div class="font-headline-xl text-headline-xl text-on-surface mt-auto">
+            @Model.Months.Count
+        </div>
+    </article>
+    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col justify-between h-[120px]">
+        <div class="flex items-center gap-2 text-on-surface-variant">
+            <span class="material-symbols-outlined icon-filled text-outline">payments</span>
+            <h3 class="font-label-bold text-label-bold uppercase">Total histórico</h3>
+        </div>
+        <div class="font-headline-xl text-headline-xl text-on-surface mt-auto">
+            @Model.CurrencySymbol@Model.TotalAllTime.ToString("N2")
+        </div>
+    </article>
+</section>
+
+@if (!Model.Months.Any())
+{
+    <!-- Estado vacío -->
+    <section class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient border-2 border-dashed border-outline-variant text-center" aria-label="No hay historial disponible">
+        <div class="w-16 h-16 mx-auto rounded-full bg-primary-container/10 flex items-center justify-center mb-4" aria-hidden="true">
+            <span class="material-symbols-outlined text-primary" style="font-size: 32px;">history</span>
+        </div>
+        <h2 class="font-headline-lg text-headline-lg text-on-surface">Sin historial aún</h2>
+        <p class="mt-2 font-body-md text-body-md text-on-surface-variant max-w-md mx-auto">
+            Cuando registres tu primer gasto, aquí aparecerá un resumen mes a mes de cómo manejas tu dinero.
+        </p>
+        <a asp-controller="Expense" asp-action="Create"
+           class="inline-flex items-center gap-2 mt-6 bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
+            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            Registrar mi primer gasto
+        </a>
+    </section>
+}
+else
+{
+    <!-- Timeline de meses -->
+    <section class="flex flex-col gap-6" aria-label="Historial por mes">
+        @foreach (var month in Model.Months)
+        {
+            var monthColor = month.IsOverBudget ? "error" : "secondary";
+            var now = DateTime.UtcNow;
+            var isCurrentMonth = month.Year == now.Year && month.Month == now.Month;
+
+            <article class="bg-surface-container-lowest rounded-[16px] shadow-ambient overflow-hidden transition-all duration-300 hover:shadow-ambient-hover"
+                     aria-label="Historial de @month.MonthName">
+                <!-- Encabezado del mes -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-container-padding bg-surface-container-low">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full @(isCurrentMonth ? "bg-secondary-container" : "bg-surface-container-high") flex items-center justify-center">
+                            <span class="material-symbols-outlined @(isCurrentMonth ? "text-on-secondary-container" : "text-on-surface-variant")">
+                                @(isCurrentMonth ? "today" : "calendar_month")
+                            </span>
+                        </div>
+                        <div>
+                            <h3 class="font-headline-lg text-headline-lg text-on-surface capitalize">
+                                @month.MonthName
+                            </h3>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant">
+                                @month.ExpenseCount gasto@(month.ExpenseCount != 1 ? "s" : "")
+                                @if (month.HasBudget)
+                                {
+                                    <span> · Presupuesto: @Model.CurrencySymbol@month.Budget.ToString("N2")</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="font-headline-xl text-headline-xl @(month.IsOverBudget ? "text-error" : "text-on-surface")">
+                            @Model.CurrencySymbol@month.TotalAmount.ToString("N2")
+                        </span>
+                        @if (month.HasBudget)
+                        {
+                            <span class="font-label-md text-label-md @(month.IsOverBudget ? "text-error" : "text-secondary")">
+                                @(month.IsOverBudget ? "Excedido" : "Restante: " + Model.CurrencySymbol + month.Remaining.ToString("N2"))
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Barra de progreso del presupuesto -->
+                @if (month.HasBudget)
+                {
+                    <div class="px-container-padding pb-3">
+                        <div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+                            <div class="h-full @(month.IsOverBudget ? "bg-error" : "bg-secondary") rounded-full transition-all duration-500"
+                                 style="width: @month.BudgetPercent%;"></div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Desglose por categoría -->
+                @if (month.Categories.Any())
+                {
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-container-padding pb-container-padding">
+                        @foreach (var cat in month.Categories)
+                        {
+                            <div class="bg-surface-container rounded-[12px] p-3 flex flex-col gap-1">
+                                <span class="font-label-bold text-label-bold uppercase text-on-surface-variant">@cat.CategoryName</span>
+                                <span class="font-headline-lg text-headline-lg text-on-surface">
+                                    @Model.CurrencySymbol@cat.Total.ToString("N2")
+                                </span>
+                                <span class="font-body-sm text-body-sm text-on-surface-variant">
+                                    @cat.Count gasto@(cat.Count != 1 ? "s" : "") · @cat.Percent%
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+            </article>
+        }
+    </section>
+}

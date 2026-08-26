@@ -19,4 +19,6 @@ public interface IExpenseRepository
     Task UpdateAsync(Expense expense);
 
     Task<bool> DeleteAsync(int id, string userId);
+
+    Task<List<(int Year, int Month)>> GetDistinctMonthsAsync(string userId);
 }
