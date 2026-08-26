@@ -1,115 +1,185 @@
 @model FinanzApp.Web.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = "Mi Dashboard";
+    ViewData["Title"] = "Panel Principal";
 }
 
-<div class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-secondary-dark">Tu resumen de @Model.MonthName</h1>
+<!-- Header -->
+<header class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface">Resumen de @Model.MonthName</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant">Mantén el control, vas por buen camino.</p>
     </div>
+    <div class="flex items-center gap-4 mt-4 flex-wrap">
+        <a asp-controller="Expense" asp-action="Index"
+           class="flex items-center gap-2 bg-surface-container-highest text-on-surface-variant px-6 py-2 rounded-full font-label-md text-label-md hover:bg-surface-variant transition-colors">
+            <span class="material-symbols-outlined" style="font-size: 18px;">history</span>
+            Historial
+        </a>
+        <a asp-controller="Expense" asp-action="Create"
+           class="flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-2 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
+            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            Registrar Gasto
+        </a>
+        <a href="#"
+           class="flex items-center gap-2 bg-transparent border-2 border-secondary text-secondary px-6 py-2 rounded-full font-label-md text-label-md hover:bg-secondary/5 transition-colors">
+            <span class="material-symbols-outlined" style="font-size: 18px;">trending_up</span>
+            Registrar Ingreso
+        </a>
+    </div>
+</header>
 
-    @if (TempData["BudgetSaved"] is true)
-    {
-        <div class="bg-emerald-50 border border-emerald-200 text-primary-dark rounded-xl px-4 py-3 text-sm" role="status">
-            Presupuesto guardado. Así se hace.
+@if (TempData["BudgetSaved"] is true)
+{
+    <div class="bg-secondary-container/30 border border-secondary/20 text-on-surface rounded-[16px] px-4 py-3 font-body-sm text-body-sm flex items-center gap-2" role="status">
+        <span class="material-symbols-outlined text-secondary" style="font-size: 18px;">check_circle</span>
+        Presupuesto guardado. Así se hace.
+    </div>
+}
+@if (TempData["BudgetError"] is string budgetError)
+{
+    <div class="bg-error-container/30 border border-error/20 text-error rounded-[16px] px-4 py-3 font-body-sm text-body-sm flex items-center gap-2" role="alert">
+        <span class="material-symbols-outlined text-error" style="font-size: 18px;">error</span>
+        @budgetError
+    </div>
+}
+
+<!-- Top Metrics Cards -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-card-gap" aria-label="Resumen financiero del mes">
+    <!-- Card 1: Gasto Total -->
+    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 flex flex-col justify-between h-[160px]">
+        <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined icon-filled text-outline">account_balance_wallet</span>
+                <h3 class="font-label-bold text-label-bold uppercase">Gasto total del mes</h3>
+            </div>
+            <span class="material-symbols-outlined text-outline-variant" style="font-size: 40px; opacity: 0.3;">payments</span>
         </div>
-    }
-    @if (TempData["BudgetError"] is string budgetError)
-    {
-        <div class="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm" role="alert">
-            @budgetError
+        <div class="font-headline-xl text-headline-xl text-on-surface mt-auto">
+            @Model.CurrencySymbol@Model.TotalSpent.ToString("N2")
         </div>
-    }
+    </article>
 
-    <!-- Tarjetas superiores -->
-    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6" aria-label="Resumen financiero del mes">
-        <article class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 class="text-sm font-semibold text-secondary uppercase tracking-wide">Total gastado</h2>
-            <p class="mt-2 text-3xl font-extrabold text-secondary-dark">
-                @Model.CurrencySymbol@Model.TotalSpent.ToString("N2")
-            </p>
-            <p class="mt-1 text-xs text-secondary-light">En lo que va de @Model.MonthName</p>
-        </article>
-
-        <article class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 class="text-sm font-semibold text-secondary uppercase tracking-wide">Presupuesto restante</h2>
+    <!-- Card 2: Presupuesto Restante -->
+    <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 flex flex-col justify-between h-[160px]">
+        <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined icon-filled text-outline">savings</span>
+                <h3 class="font-label-bold text-label-bold uppercase">Presupuesto restante</h3>
+            </div>
+            <span class="material-symbols-outlined text-outline-variant" style="font-size: 40px; opacity: 0.3;">stream_apps</span>
+        </div>
+        <div class="flex flex-col gap-3 mt-auto">
             @if (Model.HasBudget)
             {
                 var overBudget = Model.RemainingBudget < 0;
-                <p class="mt-2 text-3xl font-extrabold @(overBudget ? "text-red-500" : "text-primary")">
+                var budgetPercent = Model.MonthlyBudget > 0
+                    ? Math.Min(100, Math.Max(0, (int)(Model.RemainingBudget / Model.MonthlyBudget.Value * 100)))
+                    : 0;
+                <div class="font-headline-lg text-headline-lg @(overBudget ? "text-error" : "text-secondary")">
                     @Model.CurrencySymbol@Model.RemainingBudget.ToString("N2")
-                </p>
-                <p class="mt-1 text-xs @(overBudget ? "text-red-400" : "text-secondary-light")">
-                    @(overBudget ? "Te pasaste del presupuesto, ojo." : $"De {@Model.CurrencySymbol}{Model.MonthlyBudget?.ToString("N2")}")
-                </p>
+                </div>
+                <div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+                    <div class="h-full @(overBudget ? "bg-error" : "bg-secondary") rounded-full transition-all duration-500" style="width: @budgetPercent%;"></div>
+                </div>
             }
             else
             {
-                <p class="mt-2 text-lg font-bold text-secondary-light">Sin presupuesto aún</p>
+                <div class="font-body-md text-body-md text-on-surface-variant">Sin presupuesto aún</div>
+                <form asp-controller="Dashboard" asp-action="SetBudget" method="post" class="flex gap-2" aria-label="Establecer presupuesto mensual">
+                    <input type="number" name="amount" min="0" step="0.01"
+                           placeholder="Ej. 3500" required
+                           aria-label="Monto del presupuesto mensual"
+                           class="w-full rounded-[12px] bg-surface-container-high border border-outline-variant px-3 py-2 text-on-surface font-body-sm text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                    <button type="submit"
+                            class="shrink-0 bg-primary hover:opacity-90 transition-opacity text-on-primary font-bold px-4 py-2 rounded-full font-label-md text-label-md focus:outline-none focus:ring-4 focus:ring-primary/20">
+                        Guardar
+                    </button>
+                </form>
             }
-        </article>
+        </div>
+    </article>
 
-        <article class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 class="text-sm font-semibold text-secondary uppercase tracking-wide">Tu presupuesto mensual</h2>
-            <form asp-action="SetBudget" method="post" class="mt-3 flex gap-2" aria-label="Establecer presupuesto mensual">
-                <input type="number" name="amount" min="0" step="0.01"
-                       value="@Model.MonthlyBudget?.ToString("0.##")"
-                       placeholder="Ej. 3500"
-                       required
-                       aria-label="Monto del presupuesto mensual"
-                       class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-secondary-dark focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent" />
-                <button type="submit"
-                        class="shrink-0 bg-accent hover:bg-accent-dark transition-colors text-white font-bold px-4 py-2.5 rounded-xl focus:outline-none focus:ring-4 focus:ring-accent-light/40">
-                    Guardar
-                </button>
-            </form>
-            <p class="mt-2 text-xs text-secondary-light">¿Cuánto puedes gastar este mes sin sufrir?</p>
-        </article>
-    </section>
+    <!-- Card 3: Meta de Ahorro (placeholder) -->
+    <article class="bg-surface-container-low rounded-[16px] p-container-padding shadow-ambient transition-all duration-300 flex flex-col justify-between h-[160px] border border-outline-variant/30">
+        <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2 text-primary">
+                <span class="material-symbols-outlined icon-filled">flag</span>
+                <h3 class="font-label-bold text-label-bold uppercase">Meta de ahorro</h3>
+            </div>
+            <span class="material-symbols-outlined text-outline-variant" style="font-size: 40px; opacity: 0.5;">emoji_events</span>
+        </div>
+        <div class="flex flex-col gap-3 mt-auto">
+            <div class="flex items-baseline gap-2">
+                <span class="font-headline-lg text-headline-lg text-on-surface">—</span>
+                <span class="font-body-sm text-body-sm text-on-surface-variant">próximamente</span>
+            </div>
+            <div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+                <div class="h-full bg-primary/30 rounded-full" style="width: 0%;"></div>
+            </div>
+        </div>
+    </article>
+</section>
 
-    @if (Model.HasExpenses)
-    {
-        <!-- Gráficos -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" aria-label="Gráficos de gastos">
-            <article class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                <h2 class="font-bold text-lg text-secondary-dark">Distribución de gastos</h2>
-                <p class="text-xs text-secondary-light mb-4">Por categoría en @Model.MonthName</p>
-                <div class="relative h-64 sm:h-72">
+@if (Model.HasExpenses)
+{
+    <!-- Charts Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-card-gap">
+        <!-- Distribución de Gastos -->
+        <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col gap-6">
+            <div class="flex items-center justify-between">
+                <h3 class="font-headline-lg text-headline-lg text-on-surface">Distribución de Gastos</h3>
+                <span class="material-symbols-outlined text-outline">pie_chart</span>
+            </div>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8 py-4">
+                <div class="relative w-48 h-48">
                     <canvas id="donutChart" role="img"
                             aria-label="Gráfico de dona con tu distribución de gastos por categoría"></canvas>
                 </div>
+                <div id="donutLegend" class="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <!-- Legend populated by JS -->
+                </div>
                 <p class="sr-only">
                     Total gastado este mes: @Model.CurrencySymbol@Model.TotalSpent.ToString("N2").
-                    Consulta la lista de gastos para ver el detalle por categoría.
                 </p>
-            </article>
-
-            <article class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                <h2 class="font-bold text-lg text-secondary-dark">Tendencia de 30 días</h2>
-                <p class="text-xs text-secondary-light mb-4">Gasto por día</p>
-                <div class="relative h-64 sm:h-72">
-                    <canvas id="lineChart" role="img"
-                            aria-label="Gráfico de línea con tu gasto diario de los últimos 30 días"></canvas>
-                </div>
-                <p class="sr-only">Gastos diarios de los últimos 30 días.</p>
-            </article>
-        </section>
-    }
-    else
-    {
-        <!-- Estado vacío -->
-        <section class="bg-white rounded-2xl shadow-sm border-2 border-dashed border-slate-200 p-10 text-center" aria-label="Aún no hay gastos registrados">
-            <div class="w-16 h-16 mx-auto rounded-full bg-accent/10 flex items-center justify-center mb-4" aria-hidden="true">
-                <span class="text-accent text-3xl font-bold">$</span>
             </div>
-            <h2 class="text-xl font-bold text-secondary-dark">Aquí no hay nada... ¡todavía!</h2>
-            <p class="mt-2 text-secondary max-w-md mx-auto">
-                Cuando registres tu primer gasto, esta sección cobrará vida con gráficas
-                de a dónde va tu dinero. Empieza anotando ese café de hoy.
-            </p>
-        </section>
-    }
-</div>
+        </article>
+
+        <!-- Tendencia de Gasto -->
+        <article class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient flex flex-col gap-6">
+            <div class="flex items-center justify-between">
+                <div class="flex flex-col">
+                    <h3 class="font-headline-lg text-headline-lg text-on-surface">Tendencia de Gasto</h3>
+                    <span class="font-body-sm text-body-sm text-on-surface-variant">(30 días)</span>
+                </div>
+                <span class="material-symbols-outlined text-outline">trending_up</span>
+            </div>
+            <div class="relative w-full h-48 mt-4">
+                <canvas id="lineChart" role="img"
+                        aria-label="Gráfico de línea con tu gasto diario de los últimos 30 días"></canvas>
+            </div>
+            <p class="sr-only">Gastos diarios de los últimos 30 días.</p>
+        </article>
+    </section>
+}
+else
+{
+    <!-- Estado vacío -->
+    <section class="bg-surface-container-lowest rounded-[16px] p-container-padding shadow-ambient border-2 border-dashed border-outline-variant text-center" aria-label="Aún no hay gastos registrados">
+        <div class="w-16 h-16 mx-auto rounded-full bg-primary-container/10 flex items-center justify-center mb-4" aria-hidden="true">
+            <span class="material-symbols-outlined text-primary" style="font-size: 32px;">account_balance_wallet</span>
+        </div>
+        <h2 class="font-headline-lg text-headline-lg text-on-surface">Aquí no hay nada... ¡todavía!</h2>
+        <p class="mt-2 font-body-md text-body-md text-on-surface-variant max-w-md mx-auto">
+            Cuando registres tu primer gasto, esta sección cobrará vida con gráficas
+            de a dónde va tu dinero. Empieza anotando ese café de hoy.
+        </p>
+        <a asp-controller="Expense" asp-action="Create"
+           class="inline-flex items-center gap-2 mt-6 bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
+            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            Registrar mi primer gasto
+        </a>
+    </section>
+}
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -123,9 +193,10 @@
             const dayLabels = @Html.Raw(Model.LabelsDiasJson);
             const dayValues = @Html.Raw(Model.ValoresDiasJson);
 
-            Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
-            Chart.defaults.color = '#475569';
+            Chart.defaults.font.family = 'Plus Jakarta Sans, system-ui, sans-serif';
+            Chart.defaults.color = '#404941';
 
+            // --- Donut Chart ---
             const donutCanvas = document.getElementById('donutChart');
             if (donutCanvas) {
                 new Chart(donutCanvas, {
@@ -135,28 +206,47 @@
                         datasets: [{
                             data: catValues,
                             backgroundColor: catColors,
-                            borderWidth: 2,
+                            borderWidth: 3,
                             borderColor: '#ffffff'
                         }]
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '60%',
+                        maintainAspectRatio: true,
+                        cutout: '65%',
                         plugins: {
-                            legend: { position: 'bottom' },
+                            legend: { display: false },
                             tooltip: {
                                 callbacks: {
                                     label: function (ctx) {
-                                        return ' ' + ctx.label + ': ' + ctx.parsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(0) : 0;
+                                        return ' ' + ctx.label + ': ' + ctx.parsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (' + pct + '%)';
                                     }
                                 }
                             }
                         }
                     }
                 });
+
+                // Build custom legend
+                const legendContainer = document.getElementById('donutLegend');
+                if (legendContainer && catLabels.length > 0) {
+                    const total = catValues.reduce((a, b) => a + b, 0);
+                    legendContainer.innerHTML = catLabels.map((label, i) => {
+                        const pct = total > 0 ? ((catValues[i] / total) * 100).toFixed(0) : 0;
+                        return '<div class="flex flex-col gap-1">' +
+                            '<div class="flex items-center gap-2">' +
+                            '<div class="w-3 h-3 rounded-full" style="background-color: ' + catColors[i] + ';"></div>' +
+                            '<span class="font-body-sm text-body-sm text-on-surface">' + label + '</span>' +
+                            '</div>' +
+                            '<span class="font-label-md text-label-md text-on-surface-variant pl-5">(' + pct + '%)</span>' +
+                            '</div>';
+                    }).join('');
+                }
             }
 
+            // --- Line Chart ---
             const lineCanvas = document.getElementById('lineChart');
             if (lineCanvas) {
                 new Chart(lineCanvas, {
@@ -166,11 +256,23 @@
                         datasets: [{
                             label: 'Gasto del día',
                             data: dayValues,
-                            borderColor: '#7c3aed',
-                            backgroundColor: 'rgba(124, 58, 237, 0.08)',
+                            borderColor: '#67faa4',
+                            backgroundColor: function (ctx) {
+                                const chart = ctx.chart;
+                                const { ctx: canvasCtx, chartArea } = chart;
+                                if (!chartArea) return 'rgba(103, 250, 164, 0.1)';
+                                const gradient = canvasCtx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                                gradient.addColorStop(0, 'rgba(103, 250, 164, 0)');
+                                gradient.addColorStop(1, 'rgba(103, 250, 164, 0.2)');
+                                return gradient;
+                            },
                             fill: true,
-                            tension: 0.35,
-                            pointRadius: 2
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#67faa4',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            borderWidth: 3
                         }]
                     },
                     options: {
@@ -178,7 +280,20 @@
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                            y: { beginAtZero: true }
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#e5f0eb' },
+                                border: { display: false }
+                            },
+                            x: {
+                                grid: { display: false },
+                                border: { display: false },
+                                ticks: { maxTicksLimit: 8 }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
                         }
                     }
                 });
