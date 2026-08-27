@@ -1,35 +1,219 @@
 @model FinanzApp.Web.ViewModels.ExpenseFormViewModel
 @{
-    ViewData["Title"] = "Registrar Gasto";
+    ViewData["Title"] = "Registrar Nuevo Gasto";
 }
 
-<div class="max-w-md mx-auto">
-    <h1 class="text-2xl sm:text-3xl font-extrabold text-secondary-dark text-center">
-        Registrar gasto
-    </h1>
-    <p class="mt-2 text-secondary text-center text-sm sm:text-base">
-        Anótalo en segundos y mantén tus finanzas claras.
-    </p>
+<div class="min-h-screen bg-[#e8f5e9] py-8 px-4 flex flex-col items-center">
+    
+    <!-- Encabezado -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-[#064e3b]">Registrar Nuevo Gasto</h1>
+        <p class="text-gray-600 text-sm mt-1">Mantén el control de tus finanzas</p>
+    </div>
 
-    <form asp-action="Create" method="post"
-          class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8 space-y-5"
-          novalidate aria-label="Formulario para registrar un gasto">
-        <partial name="_ExpenseFormFields" model="Model" />
+    <!-- Tarjeta del Formulario -->
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-sm p-8 mb-10 border border-emerald-50">
+        <form asp-controller="Expense" asp-action="Create" method="post" class="space-y-6">
+            <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm"></div>
 
-        <button type="submit"
-                class="w-full bg-accent hover:bg-accent-dark transition-colors text-white font-bold text-lg py-3.5 rounded-xl focus:outline-none focus:ring-4 focus:ring-accent-light/40">
-            Guardar gasto
-        </button>
-    </form>
+            <!-- Campo Monto Centrado -->
+            <div class="text-center">
+                <label asp-for="Amount" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">MONTO</label>
+                <div class="inline-flex items-center justify-center border-b-2 border-[#064e3b] pb-1 px-4">
+                    <span class="text-3xl font-light text-[#064e3b] me-2">$</span>
+                    <input asp-for="Amount" type="number" step="0.01" placeholder="0.00"
+                           class="w-48 text-3xl font-light text-gray-500 text-center focus:outline-none bg-transparent" />
+                </div>
+                <span asp-validation-for="Amount" class="text-xs text-red-500 mt-1 block"></span>
+            </div>
 
-    <p class="mt-6 text-center text-sm text-secondary">
-        <a asp-action="Index" class="font-bold text-accent hover:text-accent-dark focus:outline-none focus:underline">
-            Ver todos mis gastos
-        </a>
-    </p>
+            <!-- Selector de Categorías con Botones y Botón de Añadir (+) -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">CATEGORÍA</label>
+                <input type="hidden" asp-for="Category" id="selectedCategory" />
+                
+                <div id="categoryContainer" class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <button type="button" onclick="selectCat('Food', this)"
+                            class="cat-btn flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 hover:border-[#064e3b] transition-all bg-white text-gray-700">
+                        <i class="bi bi-utensils text-xl mb-1"></i>
+                        <span class="text-xs font-medium">Food</span>
+                    </button>
+
+                    <button type="button" onclick="selectCat('Transport', this)"
+                            class="cat-btn flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 hover:border-[#064e3b] transition-all bg-white text-gray-700">
+                        <i class="bi bi-bus-front text-xl mb-1"></i>
+                        <span class="text-xs font-medium">Transport</span>
+                    </button>
+
+                    <button type="button" onclick="selectCat('Study', this)"
+                            class="cat-btn flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 hover:border-[#064e3b] transition-all bg-white text-gray-700">
+                        <i class="bi bi-mortarboard text-xl mb-1"></i>
+                        <span class="text-xs font-medium">Study</span>
+                    </button>
+
+                    <button type="button" onclick="selectCat('Fun', this)"
+                            class="cat-btn flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 hover:border-[#064e3b] transition-all bg-white text-gray-700">
+                        <i class="bi bi-controller text-xl mb-1"></i>
+                        <span class="text-xs font-medium">Fun</span>
+                    </button>
+
+                    <!-- Botón para Agregar Nueva Categoría (+) -->
+                    <button type="button" onclick="openAddCategoryModal()"
+                            class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-dashed border-gray-300 hover:border-[#064e3b] hover:bg-emerald-50 text-gray-400 hover:text-[#064e3b] transition-all">
+                        <i class="bi bi-plus-lg text-xl mb-1"></i>
+                        <span class="text-xs font-medium">Añadir</span>
+                    </button>
+                </div>
+                <span asp-validation-for="Category" class="text-xs text-red-500 mt-1 block"></span>
+            </div>
+
+            <!-- Inputs Fecha y Nota -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                    <label asp-for="Date" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">FECHA</label>
+                    <input asp-for="Date" type="date"
+                           class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-600 focus:outline-none focus:border-[#064e3b]" />
+                    <span asp-validation-for="Date" class="text-xs text-red-500 mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Note" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">NOTA (OPCIONAL)</label>
+                    <input asp-for="Note" placeholder="Ej. Almuerzo"
+                           class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-600 focus:outline-none focus:border-[#064e3b]" />
+                    <span asp-validation-for="Note" class="text-xs text-red-500 mt-1 block"></span>
+                </div>
+            </div>
+
+            <!-- Botón Principal -->
+            <div class="pt-4">
+                <button type="submit"
+                        class="w-full py-3.5 bg-[#064e3b] hover:bg-[#04382a] text-white font-bold text-base rounded-full shadow-md transition-all">
+                    Guardar Gasto
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Gastos Recientes -->
+    <div class="w-full max-w-2xl space-y-4">
+        <h2 class="text-xl font-bold text-[#064e3b] mb-4">Gastos de Octubre</h2>
+
+        <div class="bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-emerald-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-400 flex items-center justify-center text-white">
+                    <i class="bi bi-utensils"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 text-sm">Cafetería Universidad</h3>
+                    <p class="text-xs text-gray-400">12 Oct 2023</p>
+                </div>
+            </div>
+            <span class="font-bold text-red-500 text-sm">-$4.50</span>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-emerald-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-400 flex items-center justify-center text-white">
+                    <i class="bi bi-bus-front"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 text-sm">Pase Metro</h3>
+                    <p class="text-xs text-gray-400">10 Oct 2023</p>
+                </div>
+            </div>
+            <span class="font-bold text-red-500 text-sm">-$15.00</span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Crear Nueva Categoría -->
+<div id="addCategoryModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-emerald-50">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-[#064e3b]">Añadir Nueva Categoría</h3>
+            <button type="button" onclick="closeAddCategoryModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Nombre</label>
+                <input type="text" id="newCategoryName" placeholder="Ej. Mascotas, Salud, Ropa..."
+                       class="w-full rounded-xl border border-gray-200 p-3 text-sm focus:outline-none focus:border-[#064e3b]" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Icono</label>
+                <select id="newCategoryIcon" class="w-full rounded-xl border border-gray-200 p-3 text-sm focus:outline-none focus:border-[#064e3b] bg-white">
+                    <option value="bi-tag">Etiqueta (por defecto)</option>
+                    <option value="bi-heart">Salud / Cuidado</option>
+                    <option value="bi-[#064e3b]">Ropa / Compras</option>
+                    <option value="bi-house">Hogar / Renta</option>
+                    <option value="bi-cart">Supermercado</option>
+                </select>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3">
+                <button type="button" onclick="closeAddCategoryModal()"
+                        class="px-4 py-2 rounded-full border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50">
+                    Cancelar
+                </button>
+                <button type="button" onclick="saveNewCategory()"
+                        class="px-5 py-2 rounded-full bg-[#064e3b] text-white text-sm font-bold hover:bg-[#04382a]">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function selectCat(category, btn) {
+            document.getElementById('selectedCategory').value = category;
+            
+            document.querySelectorAll('.cat-btn').forEach(b => {
+                b.classList.remove('border-[#064e3b]', 'bg-emerald-50', 'text-[#064e3b]');
+                b.classList.add('border-gray-200', 'bg-white', 'text-gray-700');
+            });
+
+            btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-700');
+            btn.classList.add('border-[#064e3b]', 'bg-emerald-50', 'text-[#064e3b]');
+        }
+
+        function openAddCategoryModal() {
+            const modal = document.getElementById('addCategoryModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAddCategoryModal() {
+            const modal = document.getElementById('addCategoryModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.getElementById('newCategoryName').value = '';
+        }
+
+        function saveNewCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            const icon = document.getElementById('newCategoryIcon').value;
+
+            if (!name) return;
+
+            const container = document.getElementById('categoryContainer');
+            const addButton = container.lastElementChild;
+
+            const newBtn = document.createElement('button');
+            newBtn.type = 'button';
+            newBtn.onclick = function() { selectCat(name, this); };
+            newBtn.className = 'cat-btn flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 hover:border-[#064e3b] transition-all bg-white text-gray-700';
+            newBtn.innerHTML = `<i class="bi ${icon} text-xl mb-1"></i><span class="text-xs font-medium">${name}</span>`;
+
+            container.insertBefore(newBtn, addButton);
+            selectCat(name, newBtn);
+            closeAddCategoryModal();
+        }
+    </script>
 }

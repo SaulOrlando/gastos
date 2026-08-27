@@ -25,3 +25,4 @@ public class IncomeFormViewModel
     [Display(Name = "Nota (opcional)")]
     public string? Note { get; set; }
 }
+
