@@ -10,6 +10,8 @@ public interface IExpenseRepository
 
     Task<List<Expense>> GetExpensesSinceAsync(string userId, DateTime fromDate);
 
+    Task<decimal> GetTotalExpensesUntilAsync(string userId, DateTime untilDate);
+
     Task<Expense?> GetByIdAsync(int id, string userId);
 
     Task AddAsync(Expense expense);

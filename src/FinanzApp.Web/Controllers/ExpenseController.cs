@@ -25,7 +25,7 @@ public class ExpenseController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(int? year, int? month)
     {
         var user = await GetCurrentUserAsync();
 
@@ -36,7 +36,7 @@ public class ExpenseController : Controller
 
         return View(await BuildCreateModelAsync(user, new ExpenseFormViewModel
         {
-            Date = DateTime.UtcNow.Date
+            Date = DefaultDate(year, month)
         }));
     }
 
@@ -63,7 +63,7 @@ public class ExpenseController : Controller
         }
 
         await _expenseService.CreateExpenseAsync(model, user.Id);
-        return RedirectToAction("Index", "Dashboard");
+        return RedirectToAction("Index", "Dashboard", new { year = model.Date.Year, month = model.Date.Month });
     }
 
     [HttpGet]
@@ -119,7 +119,7 @@ public class ExpenseController : Controller
             return NotFound();
         }
 
-        return RedirectToAction("Index", "Dashboard");
+        return RedirectToAction("Index", "Dashboard", new { year = model.Date.Year, month = model.Date.Month });
     }
 
     [HttpGet]
@@ -154,6 +154,8 @@ public class ExpenseController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
+        var existing = await _expenseService.GetExpenseForEditAsync(id, user.Id);
+
         var deleted = await _expenseService.DeleteExpenseAsync(id, user.Id);
 
         if (!deleted)
@@ -161,7 +163,7 @@ public class ExpenseController : Controller
             return NotFound();
         }
 
-        return RedirectToAction("Index", "Dashboard");
+        return RedirectToAction("Index", "Dashboard", new { year = existing?.Date.Year, month = existing?.Date.Month });
     }
 
     [HttpPost]
@@ -250,6 +252,24 @@ public class ExpenseController : Controller
     }
 
     private Task<ApplicationUser?> GetCurrentUserAsync() => _userManager.GetUserAsync(User);
+
+    private static DateTime DefaultDate(int? year, int? month)
+    {
+        var now = DateTime.UtcNow.Date;
+
+        if (!year.HasValue || !month.HasValue)
+        {
+            return now;
+        }
+
+        if (year.Value == now.Year && month.Value == now.Month)
+        {
+            return now;
+        }
+
+        var firstDay = new DateTime(year.Value, month.Value, 1);
+        return firstDay;
+    }
 
     private static string GetCurrencySymbol(string currency) => currency switch
     {

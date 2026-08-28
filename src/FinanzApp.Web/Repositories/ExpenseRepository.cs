@@ -46,6 +46,14 @@ public class ExpenseRepository : IExpenseRepository
             .ToListAsync();
     }
 
+    public async Task<decimal> GetTotalExpensesUntilAsync(string userId, DateTime untilDate)
+    {
+        return await _context.Expenses
+            .AsNoTracking()
+            .Where(e => e.UserId == userId && e.Date <= untilDate)
+            .SumAsync(e => (decimal?)e.Amount) ?? 0m;
+    }
+
     public Task<Expense?> GetByIdAsync(int id, string userId)
     {
         return _context.Expenses

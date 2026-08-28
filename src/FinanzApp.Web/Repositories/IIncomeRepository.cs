@@ -17,4 +17,6 @@ public interface IIncomeRepository
     Task<List<Income>> GetMonthlyIncomesAsync(string userId, int year, int month);
 
     Task<List<Income>> GetIncomesSinceAsync(string userId, DateTime fromDate);
+
+    Task<decimal> GetTotalIncomesUntilAsync(string userId, DateTime untilDate);
 }

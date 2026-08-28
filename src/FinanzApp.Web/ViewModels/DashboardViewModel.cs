@@ -6,6 +6,8 @@ public class DashboardViewModel
 
     public decimal TotalIncome { get; set; }
 
+    public decimal TotalIncomeCumulative { get; set; }
+
     public decimal? MonthlyBudget { get; set; }
 
     public decimal RemainingBudget { get; set; }
@@ -15,6 +17,12 @@ public class DashboardViewModel
     public bool HasBudget => MonthlyBudget is > 0;
 
     public string MonthName { get; set; } = string.Empty;
+
+    public int Year { get; set; }
+
+    public int Month { get; set; }
+
+    public bool IsCurrentMonth { get; set; }
 
     public string CurrencySymbol { get; set; } = string.Empty;
 

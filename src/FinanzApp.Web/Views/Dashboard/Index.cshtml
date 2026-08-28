@@ -15,12 +15,12 @@
             <span class="material-symbols-outlined" style="font-size: 18px;">history</span>
             Historial
         </a>
-        <a asp-controller="Expense" asp-action="Create"
+        <a asp-controller="Expense" asp-action="Create" asp-route-year="@Model.Year" asp-route-month="@Model.Month"
            class="flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-2 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
             <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
             Registrar Gasto
         </a>
-        <a asp-controller="Income" asp-action="Create"
+        <a asp-controller="Income" asp-action="Create" asp-route-year="@Model.Year" asp-route-month="@Model.Month"
            class="flex items-center gap-2 bg-transparent border-2 border-secondary text-secondary px-6 py-2 rounded-full font-label-md text-label-md hover:bg-secondary/5 transition-colors">
             <span class="material-symbols-outlined" style="font-size: 18px;">trending_up</span>
             Registrar Ingreso
@@ -91,7 +91,7 @@
             </div>
             <div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
                 <div class="h-full @(isNegative ? "bg-error" : "bg-secondary") rounded-full transition-all duration-500"
-                     style="width: @(isNegative ? "100" : Math.Min(100, Math.Max(0, (int)(Model.TotalIncome > 0 ? Model.RemainingBudget / Model.TotalIncome * 100 : 0))))%;"></div>
+                     style="width: @(isNegative ? "100" : Math.Min(100, Math.Max(0, (int)(Model.TotalIncomeCumulative > 0 ? Model.RemainingBudget / Model.TotalIncomeCumulative * 100 : 0))))%;"></div>
             </div>
         </div>
     </article>
@@ -175,12 +175,12 @@ else
             de a dónde va tu dinero. Empieza anotando ese café de hoy.
         </p>
         <div class="flex items-center justify-center gap-4 mt-6 flex-wrap">
-            <a asp-controller="Expense" asp-action="Create"
+            <a asp-controller="Expense" asp-action="Create" asp-route-year="@Model.Year" asp-route-month="@Model.Month"
                class="inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
                 <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
                 Registrar mi primer gasto
             </a>
-            <a asp-controller="Income" asp-action="Create"
+            <a asp-controller="Income" asp-action="Create" asp-route-year="@Model.Year" asp-route-month="@Model.Month"
                class="inline-flex items-center gap-2 bg-transparent border-2 border-secondary text-secondary px-6 py-3 rounded-full font-label-md text-label-md hover:bg-secondary/5 transition-colors">
                 <span class="material-symbols-outlined" style="font-size: 18px;">trending_up</span>
                 Registrar ingreso

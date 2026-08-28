@@ -70,4 +70,12 @@ public class IncomeRepository : IIncomeRepository
             .OrderBy(i => i.Date)
             .ToListAsync();
     }
+
+    public async Task<decimal> GetTotalIncomesUntilAsync(string userId, DateTime untilDate)
+    {
+        return await _context.Incomes
+            .AsNoTracking()
+            .Where(i => i.UserId == userId && i.Date <= untilDate)
+            .SumAsync(i => (decimal?)i.Amount) ?? 0m;
+    }
 }

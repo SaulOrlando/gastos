@@ -20,10 +20,10 @@ public class DashboardController : Controller
         _userManager = userManager;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int? year, int? month)
     {
         var userId = _userManager.GetUserId(User)!;
-        var model = await _dashboardService.GetDashboardSummaryAsync(userId);
+        var model = await _dashboardService.GetDashboardSummaryAsync(userId, year, month);
         return View(model);
     }
 
