@@ -11,22 +11,6 @@ public class HistoryService : IHistoryService
     private readonly IIncomeRepository _incomeRepository;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    private static readonly Dictionary<ExpenseCategory, string> ExpenseCategoryNames = new()
-    {
-        [ExpenseCategory.Mensualidad] = "Mensualidad",
-        [ExpenseCategory.Transporte] = "Transporte",
-        [ExpenseCategory.Comida] = "Comida",
-        [ExpenseCategory.Entretenimiento] = "Entretenimiento"
-    };
-
-    private static readonly Dictionary<IncomeCategory, string> IncomeCategoryNames = new()
-    {
-        [IncomeCategory.Beca] = "Beca",
-        [IncomeCategory.Mesada] = "Mesada",
-        [IncomeCategory.Salario] = "Salario",
-        [IncomeCategory.Otro] = "Otro"
-    };
-
     public HistoryService(
         IExpenseRepository expenseRepository,
         IIncomeRepository incomeRepository,
@@ -99,7 +83,7 @@ public class HistoryService : IHistoryService
             .GroupBy(e => e.Category)
             .Select(g => new MonthCategorySummary
             {
-                CategoryName = ExpenseCategoryNames.GetValueOrDefault(g.Key, g.Key.ToString()),
+                CategoryName = g.Key,
                 Total = Math.Round(g.Sum(e => e.Amount), 2),
                 Count = g.Count(),
                 Percent = totalExpenses > 0 ? Math.Round(g.Sum(e => e.Amount) / totalExpenses * 100, 1) : 0
@@ -111,7 +95,7 @@ public class HistoryService : IHistoryService
             .GroupBy(i => i.Category)
             .Select(g => new MonthIncomeSummary
             {
-                CategoryName = IncomeCategoryNames.GetValueOrDefault(g.Key, g.Key.ToString()),
+                CategoryName = g.Key,
                 Total = Math.Round(g.Sum(i => i.Amount), 2),
                 Count = g.Count(),
                 Percent = totalIncome > 0 ? Math.Round(g.Sum(i => i.Amount) / totalIncome * 100, 1) : 0

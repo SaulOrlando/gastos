@@ -10,12 +10,11 @@ public class DashboardService : IDashboardService
 {
     private const int TrendDays = 30;
 
-    private static readonly Dictionary<ExpenseCategory, string> CategoryColors = new()
+    private static readonly Dictionary<string, string> CategoryColors = new()
     {
-        [ExpenseCategory.Mensualidad] = "#14532d",
-        [ExpenseCategory.Transporte] = "#7c3aed",
-        [ExpenseCategory.Comida] = "#475569",
-        [ExpenseCategory.Entretenimiento] = "#f59e0b"
+        ["Comida"] = "#475569",
+        ["Entretenimiento"] = "#f59e0b",
+        ["Otras"] = "#0d9488"
     };
 
     private readonly IExpenseRepository _expenseRepository;
@@ -32,38 +31,48 @@ public class DashboardService : IDashboardService
         _userManager = userManager;
     }
 
-    public async Task<DashboardViewModel> GetDashboardSummaryAsync(string userId)
+    public async Task<DashboardViewModel> GetDashboardSummaryAsync(string userId, int? year = null, int? month = null)
     {
         var user = await _userManager.FindByIdAsync(userId)
             ?? throw new InvalidOperationException($"No existe el usuario {userId}.");
 
         var now = DateTime.UtcNow;
+        var targetYear = year ?? now.Year;
+        var targetMonth = month ?? now.Month;
+        var targetDate = new DateTime(targetYear, targetMonth, 1);
 
-        var monthlyExpenses = await _expenseRepository.GetMonthlyExpensesAsync(userId, now.Year, now.Month);
-        var totalsByCategory = await _expenseRepository.GetTotalExpensesByCategoryAsync(userId, now.Year, now.Month);
+        var monthlyExpenses = await _expenseRepository.GetMonthlyExpensesAsync(userId, targetYear, targetMonth);
+        var totalsByCategory = await _expenseRepository.GetTotalExpensesByCategoryAsync(userId, targetYear, targetMonth);
         var recentExpenses = await _expenseRepository.GetExpensesSinceAsync(userId, now.Date.AddDays(-(TrendDays - 1)));
         var recentIncomes = await _incomeRepository.GetIncomesSinceAsync(userId, now.Date.AddDays(-(TrendDays - 1)));
+        var monthlyIncomes = await _incomeRepository.GetMonthlyIncomesAsync(userId, targetYear, targetMonth);
+
+        var endOfTargetMonth = new DateTime(targetYear, targetMonth, DateTime.DaysInMonth(targetYear, targetMonth), 23, 59, 59);
 
         var totalSpent = monthlyExpenses.Sum(e => e.Amount);
-        var totalIncome = recentIncomes
-            .Where(i => i.Date.Year == now.Year && i.Date.Month == now.Month)
-            .Sum(i => i.Amount);
+        var totalIncome = monthlyIncomes.Sum(i => i.Amount);
         var monthlyBudget = user.MonthlyBudget;
+
+        var totalIncomeUntil = await _incomeRepository.GetTotalIncomesUntilAsync(userId, endOfTargetMonth);
+        var totalExpensesUntil = await _expenseRepository.GetTotalExpensesUntilAsync(userId, endOfTargetMonth);
 
         return new DashboardViewModel
         {
             TotalSpent = totalSpent,
             TotalIncome = totalIncome,
+            TotalIncomeCumulative = totalIncomeUntil,
             MonthlyBudget = monthlyBudget,
-            RemainingBudget = totalIncome - totalSpent,
-            MonthName = now.ToString("MMMM yyyy"),
+            RemainingBudget = totalIncomeUntil - totalExpensesUntil,
+            MonthName = targetDate.ToString("MMMM yyyy"),
+            Year = targetYear,
+            Month = targetMonth,
+            IsCurrentMonth = targetYear == now.Year && targetMonth == now.Month,
             CurrencySymbol = GetCurrencySymbol(user.Currency),
-            LabelsCategoriaJson = JsonSerializer.Serialize(
-                totalsByCategory.Keys.Select(c => c.ToString()).ToArray()),
+            LabelsCategoriaJson = JsonSerializer.Serialize(totalsByCategory.Keys.ToArray()),
             ValoresCategoriaJson = JsonSerializer.Serialize(
                 totalsByCategory.Values.Select(v => Math.Round(v, 2)).ToArray()),
             ColoresCategoriaJson = JsonSerializer.Serialize(
-                totalsByCategory.Keys.Select(c => CategoryColors[c]).ToArray()),
+                totalsByCategory.Keys.Select(c => CategoryColors.TryGetValue(c, out var color) ? color : "#0ea5e9").ToArray()),
             LabelsDiasJson = JsonSerializer.Serialize(BuildDayLabels(now)),
             ValoresDiasJson = JsonSerializer.Serialize(BuildDailyExpenseTotals(recentExpenses, now)),
             ValoresIngresosDiasJson = JsonSerializer.Serialize(BuildDailyIncomeTotals(recentIncomes, now))

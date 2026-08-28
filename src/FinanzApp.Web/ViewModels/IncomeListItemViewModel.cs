@@ -1,6 +1,6 @@
 namespace FinanzApp.Web.ViewModels;
 
-public class ExpenseListItemViewModel
+public class IncomeListItemViewModel
 {
     public int Id { get; set; }
 

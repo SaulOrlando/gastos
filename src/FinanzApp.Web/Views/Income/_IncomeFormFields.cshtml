@@ -1,4 +1,4 @@
-@model FinanzApp.Web.ViewModels.ExpenseFormViewModel
+@model FinanzApp.Web.ViewModels.IncomeFormViewModel
 
 <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm bg-red-50 border border-red-200 rounded-lg p-3" role="alert"></div>
 
@@ -19,7 +19,7 @@
             class="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-lg text-secondary-dark bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
         @if (Model.Categories.Any())
         {
-            <option value="" disabled>¿En qué fue el gasto?</option>
+            <option value="" disabled>¿De dónde vino el ingreso?</option>
             @foreach (var cat in Model.Categories)
             {
                 <option value="@cat.Name">@cat.Name</option>
@@ -27,7 +27,7 @@
         }
         else
         {
-            <option value="" disabled>No hay categorías. Crea una al registrar un gasto.</option>
+            <option value="" disabled>No hay categorías. Crea una al registrar un ingreso.</option>
         }
     </select>
     <span asp-validation-for="Category" class="text-red-500 text-sm mt-1 block"></span>
@@ -44,6 +44,6 @@
     <label asp-for="Note" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
     <textarea asp-for="Note" rows="3" maxlength="500"
               class="w-full rounded-xl border border-slate-300 px-4 py-3 text-secondary-dark placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-y"
-              placeholder="Ej. café con amigos antes del examen"></textarea>
+              placeholder="Ej. Beca mensual de la universidad"></textarea>
     <span asp-validation-for="Note" class="text-red-500 text-sm mt-1 block"></span>
 </div>

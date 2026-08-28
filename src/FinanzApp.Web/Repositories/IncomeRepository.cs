@@ -36,6 +36,12 @@ public class IncomeRepository : IIncomeRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateAsync(Income income)
+    {
+        _context.Incomes.Update(income);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<bool> DeleteAsync(int id, string userId)
     {
         var affectedRows = await _context.Incomes
@@ -63,5 +69,13 @@ public class IncomeRepository : IIncomeRepository
             .Where(i => i.UserId == userId && i.Date >= fromDate)
             .OrderBy(i => i.Date)
             .ToListAsync();
+    }
+
+    public async Task<decimal> GetTotalIncomesUntilAsync(string userId, DateTime untilDate)
+    {
+        return await _context.Incomes
+            .AsNoTracking()
+            .Where(i => i.UserId == userId && i.Date <= untilDate)
+            .SumAsync(i => (decimal?)i.Amount) ?? 0m;
     }
 }

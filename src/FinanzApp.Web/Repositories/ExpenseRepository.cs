@@ -24,7 +24,7 @@ public class ExpenseRepository : IExpenseRepository
             .ToListAsync();
     }
 
-    public async Task<Dictionary<ExpenseCategory, decimal>> GetTotalExpensesByCategoryAsync(
+    public async Task<Dictionary<string, decimal>> GetTotalExpensesByCategoryAsync(
         string userId, int year, int month)
     {
         return await _context.Expenses
@@ -46,14 +46,12 @@ public class ExpenseRepository : IExpenseRepository
             .ToListAsync();
     }
 
-    public Task<List<Expense>> GetAllByUserIdAsync(string userId)
+    public async Task<decimal> GetTotalExpensesUntilAsync(string userId, DateTime untilDate)
     {
-        return _context.Expenses
+        return await _context.Expenses
             .AsNoTracking()
-            .Where(e => e.UserId == userId)
-            .OrderByDescending(e => e.Date)
-            .ThenByDescending(e => e.CreatedAt)
-            .ToListAsync();
+            .Where(e => e.UserId == userId && e.Date <= untilDate)
+            .SumAsync(e => (decimal?)e.Amount) ?? 0m;
     }
 
     public Task<Expense?> GetByIdAsync(int id, string userId)

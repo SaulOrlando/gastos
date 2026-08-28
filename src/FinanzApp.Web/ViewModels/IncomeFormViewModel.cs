@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using FinanzApp.Web.Models;
 
 namespace FinanzApp.Web.ViewModels;
 
@@ -13,9 +12,9 @@ public class IncomeFormViewModel
     public decimal Amount { get; set; }
 
     [Required(ErrorMessage = "Elige una categoría para tu ingreso.")]
-    [EnumDataType(typeof(IncomeCategory), ErrorMessage = "Esa categoría no existe.")]
+    [StringLength(50, ErrorMessage = "El nombre de la categoría es demasiado largo.")]
     [Display(Name = "Categoría")]
-    public IncomeCategory Category { get; set; }
+    public string Category { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Dinos en qué fecha fue el ingreso.")]
     [Display(Name = "Fecha")]
@@ -24,5 +23,12 @@ public class IncomeFormViewModel
     [StringLength(500, ErrorMessage = "La nota no puede pasar de 500 caracteres.")]
     [Display(Name = "Nota (opcional)")]
     public string? Note { get; set; }
-}
 
+    public List<CategoryViewModel> Categories { get; set; } = new();
+
+    public string CurrencySymbol { get; set; } = "$";
+
+    public string CurrentMonthName { get; set; } = string.Empty;
+
+    public List<IncomeListItemViewModel> CurrentMonthIncomes { get; set; } = new();
+}

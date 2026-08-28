@@ -7,16 +7,30 @@ namespace FinanzApp.Web.Services;
 public class ExpenseService : IExpenseService
 {
     private readonly IExpenseRepository _expenseRepository;
+    private readonly ICategoryRepository _categoryRepository;
 
-    public ExpenseService(IExpenseRepository expenseRepository)
+    public ExpenseService(
+        IExpenseRepository expenseRepository,
+        ICategoryRepository categoryRepository)
     {
         _expenseRepository = expenseRepository;
+        _categoryRepository = categoryRepository;
     }
 
-    public async Task<List<ExpenseListItemViewModel>> GetExpensesForUserAsync(string userId)
+    public async Task<List<ExpenseListItemViewModel>> GetExpensesForMonthAsync(string userId, int year, int month, int? limit = null)
     {
-        var expenses = await _expenseRepository.GetAllByUserIdAsync(userId);
+        var expenses = await _expenseRepository.GetMonthlyExpensesAsync(userId, year, month);
 
+        if (limit.HasValue)
+        {
+            expenses = expenses.OrderByDescending(e => e.Date).Take(limit.Value).ToList();
+        }
+
+        return MapToListItem(expenses);
+    }
+
+    private static List<ExpenseListItemViewModel> MapToListItem(IEnumerable<Expense> expenses)
+    {
         return expenses.Select(e => new ExpenseListItemViewModel
         {
             Id = e.Id,
@@ -88,5 +102,12 @@ public class ExpenseService : IExpenseService
     public Task<bool> DeleteExpenseAsync(int id, string userId)
     {
         return _expenseRepository.DeleteAsync(id, userId);
+    }
+
+    public async Task<bool> IsValidCategoryAsync(string category, string userId)
+    {
+        var categories = await _categoryRepository.GetAllForUserAsync(userId);
+
+        return categories.Any(c => string.Equals(c.Name, category, StringComparison.OrdinalIgnoreCase));
     }
 }

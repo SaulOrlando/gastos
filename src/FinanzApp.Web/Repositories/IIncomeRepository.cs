@@ -10,9 +10,13 @@ public interface IIncomeRepository
 
     Task AddAsync(Income income);
 
+    Task UpdateAsync(Income income);
+
     Task<bool> DeleteAsync(int id, string userId);
 
     Task<List<Income>> GetMonthlyIncomesAsync(string userId, int year, int month);
 
     Task<List<Income>> GetIncomesSinceAsync(string userId, DateTime fromDate);
+
+    Task<decimal> GetTotalIncomesUntilAsync(string userId, DateTime untilDate);
 }

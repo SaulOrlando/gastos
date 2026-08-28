@@ -9,6 +9,12 @@ public class ApplicationUser : IdentityUser
     [StringLength(100)]
     public string FullName { get; set; } = string.Empty;
 
+    [StringLength(100)]
+    public string FirstName { get; set; } = string.Empty;
+
+    [StringLength(100)]
+    public string LastName { get; set; } = string.Empty;
+
     [Required]
     [StringLength(3)]
     public string Currency { get; set; } = "MXN";
@@ -29,6 +35,8 @@ public class ApplicationUser : IdentityUser
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
+
+    public ICollection<ExpenseCategory> Categories { get; set; } = new List<ExpenseCategory>();
 
     public ICollection<Income> Incomes { get; set; } = new List<Income>();
 

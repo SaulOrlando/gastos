@@ -4,5 +4,5 @@ namespace FinanzApp.Web.Services;
 
 public interface IDashboardService
 {
-    Task<DashboardViewModel> GetDashboardSummaryAsync(string userId);
+    Task<DashboardViewModel> GetDashboardSummaryAsync(string userId, int? year = null, int? month = null);
 }

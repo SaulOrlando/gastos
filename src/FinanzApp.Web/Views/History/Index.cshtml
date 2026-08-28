@@ -41,8 +41,13 @@ else
         @{ var index = 0; }
         @foreach (var month in Model.Months)
         {
-            <article class="month-card bg-surface-container-lowest rounded-xl p-container-padding shadow-ambient transition-all duration-300 hover:shadow-[0_12px_40px_0_rgba(0,67,35,0.08)] hover:-translate-y-0.5 flex flex-col h-full border border-surface-container-high"
-                     data-index="@index">
+            <article class="month-card bg-surface-container-lowest rounded-xl p-container-padding shadow-ambient transition-all duration-300 hover:shadow-[0_12px_40px_0_rgba(0,67,35,0.08)] hover:-translate-y-0.5 flex flex-col h-full border border-surface-container-high cursor-pointer relative"
+                     data-index="@index"
+                     tabindex="0"
+                     role="link"
+                     aria-label="Ver @month.MonthName en el tablero"
+                     onclick="location.href='@Url.Action("Index", "Dashboard", new { year = month.Year, month = month.Month })'"
+                     onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); location.href='@Url.Action("Index", "Dashboard", new { year = month.Year, month = month.Month })'; }">
                 <div class="flex justify-between items-start mb-6">
                     <div>
                         <h2 class="font-headline-lg text-headline-lg text-primary capitalize">@month.MonthName</h2>
@@ -73,8 +78,8 @@ else
                     </div>
                 </div>
 
-                <a asp-action="Monthly" asp-route-year="@month.Year" asp-route-month="@month.Month"
-                   class="w-full mt-auto flex justify-center items-center gap-2 @(month.IsCurrentMonth ? "bg-secondary-fixed text-on-secondary-fixed-variant hover:-translate-y-0.5" : "bg-surface-container-high text-primary hover:bg-surface-container") py-3 rounded-full font-label-bold text-label-bold transition-all group">
+                <a asp-action="Monthly" asp-route-year="@month.Year" asp-route-month="@month.Month" onclick="event.stopPropagation()"
+                   class="relative z-10 w-full mt-auto flex justify-center items-center gap-2 @(month.IsCurrentMonth ? "bg-secondary-fixed text-on-secondary-fixed-variant hover:-translate-y-0.5" : "bg-surface-container-high text-primary hover:bg-surface-container") py-3 rounded-full font-label-bold text-label-bold transition-all group">
                     Ver resumen
                     <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">
                         @(month.IsCurrentMonth ? "arrow_forward" : "chevron_right")

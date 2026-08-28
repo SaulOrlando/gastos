@@ -12,6 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<ExpenseCategory> ExpenseCategories => Set<ExpenseCategory>();
     public DbSet<Income> Incomes { get; set; }
     public DbSet<SavingsGoal> SavingsGoals => Set<SavingsGoal>();
     public DbSet<SavingsEntry> SavingsEntries => Set<SavingsEntry>();
@@ -30,9 +31,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Expense>(e =>
         {
             e.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            e.Property(x => x.Category).HasMaxLength(50);
             e.HasIndex(x => new { x.UserId, x.Date }).HasDatabaseName("IX_Expense_User_Date");
             e.HasIndex(x => new { x.UserId, x.Category }).HasDatabaseName("IX_Expense_User_Category");
             e.HasOne(x => x.User).WithMany(u => u.Expenses).HasForeignKey(x => x.UserId);
+        });
+
+        builder.Entity<ExpenseCategory>(e =>
+        {
+            e.HasIndex(x => new { x.UserId, x.Name }).HasDatabaseName("IX_Category_User_Name");
+            e.HasOne(x => x.User).WithMany(u => u.Categories).HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<Income>(e =>
