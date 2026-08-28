@@ -10,12 +10,11 @@ public class DashboardService : IDashboardService
 {
     private const int TrendDays = 30;
 
-    private static readonly Dictionary<ExpenseCategory, string> CategoryColors = new()
+    private static readonly Dictionary<string, string> CategoryColors = new()
     {
-        [ExpenseCategory.Mensualidad] = "#14532d",
-        [ExpenseCategory.Transporte] = "#7c3aed",
-        [ExpenseCategory.Comida] = "#475569",
-        [ExpenseCategory.Entretenimiento] = "#f59e0b"
+        ["Comida"] = "#475569",
+        ["Entretenimiento"] = "#f59e0b",
+        ["Otras"] = "#0d9488"
     };
 
     private readonly IExpenseRepository _expenseRepository;
@@ -58,12 +57,11 @@ public class DashboardService : IDashboardService
             RemainingBudget = totalIncome - totalSpent,
             MonthName = now.ToString("MMMM yyyy"),
             CurrencySymbol = GetCurrencySymbol(user.Currency),
-            LabelsCategoriaJson = JsonSerializer.Serialize(
-                totalsByCategory.Keys.Select(c => c.ToString()).ToArray()),
+            LabelsCategoriaJson = JsonSerializer.Serialize(totalsByCategory.Keys.ToArray()),
             ValoresCategoriaJson = JsonSerializer.Serialize(
                 totalsByCategory.Values.Select(v => Math.Round(v, 2)).ToArray()),
             ColoresCategoriaJson = JsonSerializer.Serialize(
-                totalsByCategory.Keys.Select(c => CategoryColors[c]).ToArray()),
+                totalsByCategory.Keys.Select(c => CategoryColors.TryGetValue(c, out var color) ? color : "#0ea5e9").ToArray()),
             LabelsDiasJson = JsonSerializer.Serialize(BuildDayLabels(now)),
             ValoresDiasJson = JsonSerializer.Serialize(BuildDailyExpenseTotals(recentExpenses, now)),
             ValoresIngresosDiasJson = JsonSerializer.Serialize(BuildDailyIncomeTotals(recentIncomes, now))

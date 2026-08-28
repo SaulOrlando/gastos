@@ -4,6 +4,7 @@ using FinanzApp.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinanzApp.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260828093533_AddUserNames")]
+    partial class AddUserNames
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,10 +173,8 @@ namespace FinanzApp.Web.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -203,41 +204,6 @@ namespace FinanzApp.Web.Migrations
                     b.ToTable("Expenses");
                 });
 
-            modelBuilder.Entity("FinanzApp.Web.Models.ExpenseCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Icon")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsSystem")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "Name")
-                        .HasDatabaseName("IX_Category_User_Name");
-
-                    b.ToTable("ExpenseCategories");
-                });
-
             modelBuilder.Entity("FinanzApp.Web.Models.Income", b =>
                 {
                     b.Property<int>("Id")
@@ -249,10 +215,8 @@ namespace FinanzApp.Web.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -537,16 +501,6 @@ namespace FinanzApp.Web.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FinanzApp.Web.Models.ExpenseCategory", b =>
-                {
-                    b.HasOne("FinanzApp.Web.Models.ApplicationUser", "User")
-                        .WithMany("Categories")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("FinanzApp.Web.Models.Income", b =>
                 {
                     b.HasOne("FinanzApp.Web.Models.ApplicationUser", "User")
@@ -645,8 +599,6 @@ namespace FinanzApp.Web.Migrations
             modelBuilder.Entity("FinanzApp.Web.Models.ApplicationUser", b =>
                 {
                     b.Navigation("AITips");
-
-                    b.Navigation("Categories");
 
                     b.Navigation("Expenses");
 

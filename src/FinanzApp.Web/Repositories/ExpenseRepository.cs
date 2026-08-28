@@ -24,7 +24,7 @@ public class ExpenseRepository : IExpenseRepository
             .ToListAsync();
     }
 
-    public async Task<Dictionary<ExpenseCategory, decimal>> GetTotalExpensesByCategoryAsync(
+    public async Task<Dictionary<string, decimal>> GetTotalExpensesByCategoryAsync(
         string userId, int year, int month)
     {
         return await _context.Expenses
@@ -43,16 +43,6 @@ public class ExpenseRepository : IExpenseRepository
             .AsNoTracking()
             .Where(e => e.UserId == userId && e.Date >= fromDate)
             .OrderBy(e => e.Date)
-            .ToListAsync();
-    }
-
-    public Task<List<Expense>> GetAllByUserIdAsync(string userId)
-    {
-        return _context.Expenses
-            .AsNoTracking()
-            .Where(e => e.UserId == userId)
-            .OrderByDescending(e => e.Date)
-            .ThenByDescending(e => e.CreatedAt)
             .ToListAsync();
     }
 

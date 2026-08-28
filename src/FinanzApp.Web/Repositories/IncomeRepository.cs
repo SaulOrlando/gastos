@@ -36,6 +36,12 @@ public class IncomeRepository : IIncomeRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateAsync(Income income)
+    {
+        _context.Incomes.Update(income);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<bool> DeleteAsync(int id, string userId)
     {
         var affectedRows = await _context.Incomes

@@ -33,11 +33,13 @@ builder.Services.AddControllersWithViews();
 
 // Dependency Injection: Repositories
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 
 // Dependency Injection: Services
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<IHistoryService, HistoryService>();
 

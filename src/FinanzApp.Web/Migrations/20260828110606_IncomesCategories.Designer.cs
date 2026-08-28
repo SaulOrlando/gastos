@@ -4,6 +4,7 @@ using FinanzApp.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinanzApp.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260828110606_IncomesCategories")]
+    partial class IncomesCategories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -280,6 +283,36 @@ namespace FinanzApp.Web.Migrations
                         .HasDatabaseName("IX_Income_User_Date");
 
                     b.ToTable("Incomes");
+                });
+
+            modelBuilder.Entity("FinanzApp.Web.Models.IncomeCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Name")
+                        .HasDatabaseName("IX_IncomeCategory_User_Name");
+
+                    b.ToTable("IncomeCategories");
                 });
 
             modelBuilder.Entity("FinanzApp.Web.Models.SavingsEntry", b =>
@@ -558,6 +591,16 @@ namespace FinanzApp.Web.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FinanzApp.Web.Models.IncomeCategory", b =>
+                {
+                    b.HasOne("FinanzApp.Web.Models.ApplicationUser", "User")
+                        .WithMany("IncomeCategories")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FinanzApp.Web.Models.SavingsEntry", b =>
                 {
                     b.HasOne("FinanzApp.Web.Models.SavingsGoal", "Goal")
@@ -649,6 +692,8 @@ namespace FinanzApp.Web.Migrations
                     b.Navigation("Categories");
 
                     b.Navigation("Expenses");
+
+                    b.Navigation("IncomeCategories");
 
                     b.Navigation("Incomes");
 

@@ -17,7 +17,8 @@ public class Income
     public decimal Amount { get; set; }
 
     [Required]
-    public IncomeCategory Category { get; set; }
+    [StringLength(50)]
+    public string Category { get; set; } = string.Empty;
 
     public DateTime Date { get; set; } = DateTime.UtcNow;
 
