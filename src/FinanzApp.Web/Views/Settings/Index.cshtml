@@ -1,133 +1,184 @@
 @model FinanzApp.Web.ViewModels.SettingsViewModel
 @{
-    ViewData["Title"] = "Configuración";
+    ViewData["Title"] = "Ajustes de Cuenta";
 }
 
-<div class="container py-4">
-    <div class="d-flex align-items-center mb-4">
-        <i class="bi bi-gear-fill fs-2 text-primary me-2"></i>
-        <h2 class="mb-0 fw-bold">Configuración de la Cuenta</h2>
-    </div>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white border-bottom-0 pt-3 ps-3">
-            <ul class="nav nav-tabs card-header-tabs" id="settingsTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active fw-semibold" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">
-                        <i class="bi bi-person me-1"></i> Perfil
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-semibold" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
-                        <i class="bi bi-shield-lock me-1"></i> Seguridad
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-semibold" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab">
-                        <i class="bi bi-sliders me-1"></i> Preferencias
-                    </button>
-                </li>
-            </ul>
+<div class="min-h-screen bg-[#e8f5e9] py-8 px-4 flex flex-col items-center">
+    
+    <div class="w-full max-w-3xl space-y-6">
+        <!-- Encabezado -->
+        <div>
+            <h1 class="text-3xl font-bold text-[#064e3b]">Ajustes de Cuenta</h1>
+            <p class="text-gray-600 text-sm mt-1">Gestiona tu perfil y preferencias financieras.</p>
         </div>
 
-        <div class="card-body p-4">
-            <div class="tab-content" id="settingsTabContent">
-                <!-- Tab 1: Perfil -->
-                <div class="tab-pane fade show active" id="profile" role="tabpanel">
-                    <form asp-action="UpdateProfile" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label asp-for="FirstName" class="form-label font-medium"></label>
-                                <input asp-for="FirstName" class="form-control" />
-                                <span asp-validation-for="FirstName" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="LastName" class="form-label font-medium"></label>
-                                <input asp-for="LastName" class="form-control" />
-                                <span asp-validation-for="LastName" class="text-danger small"></span>
-                            </div>
-                            <div class="col-12">
-                                <label asp-for="Email" class="form-label font-medium"></label>
-                                <input asp-for="Email" class="form-control" />
-                                <span asp-validation-for="Email" class="text-danger small"></span>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary px-4">Guardar Cambios</button>
-                        </div>
-                    </form>
-                </div>
+        <form asp-controller="Settings" asp-action="Save" method="post" class="space-y-6">
+            <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm"></div>
 
-                <!-- Tab 2: Seguridad -->
-                <div class="tab-pane fade" id="security" role="tabpanel">
-                    <form asp-action="ChangePassword" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        <div class="row g-3" style="max-width: 500px;">
-                            <div class="col-12">
-                                <label asp-for="CurrentPassword" class="form-label font-medium"></label>
-                                <input asp-for="CurrentPassword" class="form-control" />
-                                <span asp-validation-for="CurrentPassword" class="text-danger small"></span>
-                            </div>
-                            <div class="col-12">
-                                <label asp-for="NewPassword" class="form-label font-medium"></label>
-                                <input asp-for="NewPassword" class="form-control" />
-                                <span asp-validation-for="NewPassword" class="text-danger small"></span>
-                            </div>
-                            <div class="col-12">
-                                <label asp-for="ConfirmPassword" class="form-label font-medium"></label>
-                                <input asp-for="ConfirmPassword" class="form-control" />
-                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-warning px-4 text-dark fw-semibold">Cambiar Contraseña</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Tab 3: Preferencias -->
-                <div class="tab-pane fade" id="preferences" role="tabpanel">
-                    <div class="row g-3" style="max-width: 500px;">
-                        <div class="col-12">
-                            <label asp-for="Currency" class="form-label font-medium"></label>
-                            <select asp-for="Currency" class="form-select">
-                                <option value="USD">USD ($)</option>
-                                <option value="EUR">EUR (€)</option>
-                                <option value="MXN">MXN ($)</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label asp-for="MonthlyBudgetLimit" class="form-label font-medium"></label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input asp-for="MonthlyBudgetLimit" class="form-control" placeholder="0.00" />
-                            </div>
-                        </div>
-                        <div class="col-12 mt-3">
-                            <div class="form-check form-switch">
-                                <input asp-for="EnableNotifications" class="form-check-input" type="checkbox" id="notifSwitch">
-                                <label class="form-check-label" for="notifSwitch">Activar notificaciones y alertas de límite de gastos</label>
-                            </div>
-                        </div>
+            <!-- Card 1: Perfil -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-emerald-50">
+                <h2 class="text-lg font-bold text-[#064e3b] mb-4">Perfil</h2>
+                
+                <div class="flex items-start gap-6">
+                    <!-- Foto de Perfil -->
+                    <div class="relative">
+                        <img src="https://ui-avatars.com/api/?name=Maria+Gonzalez&background=064e3b&color=fff" 
+                             alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover" />
+                        <span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></span>
                     </div>
-                    <div class="mt-4">
-                        <button type="button" class="btn btn-primary px-4">Guardar Preferencias</button>
+
+                    <!-- Campos Nombre y Correo -->
+                    <div class="flex-1 space-y-4">
+                        <div>
+                            <label asp-for="FullName" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">NOMBRE COMPLETO</label>
+                            <input asp-for="FullName" placeholder="María González"
+                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-700 focus:outline-none focus:border-[#064e3b]" />
+                            <span asp-validation-for="FullName" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="Email" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">CORREO ELECTRÓNICO</label>
+                            <input asp-for="Email" type="email" placeholder="maria.g@universidad.edu"
+                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-700 focus:outline-none focus:border-[#064e3b]" />
+                            <span asp-validation-for="Email" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Card 2: Configuración de Ingresos -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-emerald-50 space-y-5">
+                <h2 class="text-lg font-bold text-[#064e3b]">Configuración de Ingresos</h2>
+                
+                <!-- Monto del Sueldo -->
+                <div>
+                    <label asp-for="SalaryAmount" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">MONTO DEL SUELDO</label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-4 text-gray-400 text-lg">$</span>
+                        <input asp-for="SalaryAmount" type="number" step="0.01" placeholder="4500"
+                               class="w-full rounded-xl border border-gray-200 py-3.5 pl-9 pr-4 text-lg font-semibold text-gray-700 focus:outline-none focus:border-[#064e3b]" />
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Ingresa el monto neto que recibes.</p>
+                </div>
+
+                <!-- Frecuencia de Depósito -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">FRECUENCIA DE DEPÓSITO</label>
+                    <input type="hidden" asp-for="DepositFrequency" id="selectedFrequency" value="Quincenal" />
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <!-- Opción 1: Cada 15 días / Quincenal -->
+                        <button type="button" onclick="selectFrequency('Quincenal', this)"
+                                class="freq-btn flex items-center justify-between p-4 rounded-xl border-2 border-[#064e3b] bg-emerald-50/50 text-left transition-all">
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">Cada 15 días</p>
+                                <p class="text-sm font-bold text-[#064e3b]">Quincenal</p>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-[#064e3b] text-lg check-icon"></i>
+                        </button>
+
+                        <!-- Opción 2: Cada mes / Mensual -->
+                        <button type="button" onclick="selectFrequency('Mensual', this)"
+                                class="freq-btn flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white text-left transition-all">
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">Cada mes</p>
+                                <p class="text-sm font-bold text-gray-700">Mensual</p>
+                            </div>
+                            <i class="bi bi-circle text-gray-300 text-lg check-icon"></i>
+                        </button>
+
+                        <!-- Opción 3: Personalizado -->
+                        <button type="button" onclick="selectFrequency('Personalizado', this)"
+                                class="freq-btn flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white text-left transition-all">
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">Personalizado</p>
+                                <p class="text-sm font-bold text-gray-700">Días específicos</p>
+                            </div>
+                            <i class="bi bi-circle text-gray-300 text-lg check-icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Seguridad y Sesión -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-emerald-50 space-y-6">
+                <h2 class="text-lg font-bold text-[#064e3b]">Seguridad y Sesión</h2>
+
+                <!-- Cambiar Contraseña -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800">Contraseña</h3>
+                        <p class="text-xs text-gray-400">Última actualización hace 3 meses</p>
+                    </div>
+                    <button type="button" class="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition-colors">
+                        Cambiar Contraseña
+                    </button>
+                </div>
+
+                <hr class="border-gray-100" />
+
+                <!-- Cerrar Sesión -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-red-500">Cerrar Sesión</h3>
+                        <p class="text-xs text-gray-400">Saldrás de tu cuenta en este dispositivo.</p>
+                    </div>
+                    <a asp-controller="Account" asp-action="Logout" 
+                       class="px-4 py-2 rounded-xl border border-red-200 text-red-500 text-xs font-semibold hover:bg-red-50 transition-colors flex items-center gap-1.5">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+
+            <!-- Botón Guardar Cambios -->
+            <div class="flex justify-end pt-2">
+                <button type="submit" 
+                        class="px-8 py-3 bg-[#064e3b] hover:bg-[#04382a] text-white font-bold text-sm rounded-full shadow-md transition-all">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function selectFrequency(value, btn) {
+            document.getElementById('selectedFrequency').value = value;
+
+            // Resetear todos los botones de frecuencia
+            document.querySelectorAll('.freq-btn').forEach(b => {
+                b.classList.remove('border-2', 'border-[#064e3b]', 'bg-emerald-50/50');
+                b.classList.add('border', 'border-gray-200', 'bg-white');
+                
+                const title = b.querySelector('.text-sm');
+                if (title) {
+                    title.classList.remove('text-[#064e3b]');
+                    title.classList.add('text-gray-700');
+                }
+
+                const icon = b.querySelector('.check-icon');
+                if (icon) {
+                    icon.className = 'bi bi-circle text-gray-300 text-lg check-icon';
+                }
+            });
+
+            // Activar botón clickeado
+            btn.classList.remove('border-gray-200', 'bg-white');
+            btn.classList.add('border-2', 'border-[#064e3b]', 'bg-emerald-50/50');
+
+            const activeTitle = btn.querySelector('.text-sm');
+            if (activeTitle) {
+                activeTitle.classList.remove('text-gray-700');
+                activeTitle.classList.add('text-[#064e3b]');
+            }
+
+            const activeIcon = btn.querySelector('.check-icon');
+            if (activeIcon) {
+                activeIcon.className = 'bi bi-check-circle-fill text-[#064e3b] text-lg check-icon';
+            }
+        }
+    </script>
 }
