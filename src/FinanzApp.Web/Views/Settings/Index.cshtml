@@ -12,7 +12,14 @@
             <p class="text-gray-600 text-sm mt-1">Gestiona tu perfil y preferencias financieras.</p>
         </div>
 
-        <form asp-controller="Settings" asp-action="Save" method="post" class="space-y-6">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="bg-emerald-100 border border-emerald-300 text-emerald-800 text-sm px-4 py-3 rounded-xl">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <form id="profileSettingsForm" asp-controller="Settings" asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="space-y-6">
             <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm"></div>
 
             <!-- Card 1: Perfil -->
@@ -21,13 +28,21 @@
                 
                 <div class="flex items-start gap-6">
                     <!-- Foto de Perfil -->
-                    <div class="relative">
-                        <img src="https://ui-avatars.com/api/?name=Maria+Gonzalez&background=064e3b&color=fff" 
-                             alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover" />
-                        <span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></span>
+                    <div class="relative flex flex-col items-center gap-2">
+                        <img src="@(string.IsNullOrEmpty(Model.ProfilePicture)
+                                  ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.FullName)}&background=064e3b&color=fff"
+                                  : Model.ProfilePicture)"
+                             alt="Foto de Perfil" id="profilePreview"
+                             class="w-20 h-20 rounded-full object-cover border-2 border-emerald-200" />
+                        <label for="ProfilePictureFile"
+                               class="text-xs font-semibold text-[#064e3b] hover:underline cursor-pointer">
+                            Cambiar foto
+                        </label>
+                        <input type="file" id="ProfilePictureFile" name="ProfilePictureFile" accept="image/*"
+                               class="hidden" onchange="previewProfilePhoto(this)" />
                     </div>
 
-                    <!-- Campos Nombre y Correo -->
+                    <!-- Campo Nombre -->
                     <div class="flex-1 space-y-4">
                         <div>
                             <label asp-for="FullName" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">NOMBRE COMPLETO</label>
@@ -38,9 +53,9 @@
 
                         <div>
                             <label asp-for="Email" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">CORREO ELECTRÓNICO</label>
-                            <input asp-for="Email" type="email" placeholder="maria.g@universidad.edu"
-                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-700 focus:outline-none focus:border-[#064e3b]" />
-                            <span asp-validation-for="Email" class="text-xs text-red-500 mt-1 block"></span>
+                            <input asp-for="Email" type="email" value="@Model.Email" disabled readonly
+                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-500 bg-gray-50 cursor-not-allowed" />
+                            <p class="text-xs text-gray-400 mt-1">El correo es tu identificador de acceso y no se puede modificar.</p>
                         </div>
                     </div>
                 </div>
@@ -48,8 +63,30 @@
 
             <!-- Card 2: Configuración de Ingresos -->
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-emerald-50 space-y-5">
-                <h2 class="text-lg font-bold text-[#064e3b]">Configuración de Ingresos</h2>
-                
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-[#064e3b]">Configuración de Ingresos</h2>
+                    <div class="relative">
+                        <button type="button" id="incomeInfoToggle"
+                                class="w-6 h-6 rounded-full border border-[#064e3b] text-[#064e3b] flex items-center justify-center text-xs font-bold hover:bg-emerald-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#064e3b]/40"
+                                aria-label="¿Qué es la configuración de ingresos?" aria-expanded="false">
+                            i
+                        </button>
+                        <div id="incomeInfoTooltip"
+                             class="hidden absolute right-0 mt-2 w-72 rounded-xl bg-white border border-emerald-100 shadow-lg p-4 text-sm text-gray-600 z-10">
+                            <p class="mb-1">
+                                Aquí defines tu sueldo y cada cuánto lo recibes. Ese monto se sumará
+                                automáticamente a tus ingresos según los días que indiques.
+                            </p>
+                            <p class="mt-1">
+                                Si eliges <span class="font-semibold text-[#064e3b]">Personalizado</span>,
+                                indica el día en que lo recibirías por primera vez y cada cuántos días
+                                (máximo 31). Por ejemplo: primer día el 1 de noviembre y 7 días — se
+                                sumará automáticamente el 8.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Monto del Sueldo -->
                 <div>
                     <label asp-for="SalaryAmount" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">MONTO DEL SUELDO</label>
@@ -58,17 +95,17 @@
                         <input asp-for="SalaryAmount" type="number" step="0.01" placeholder="4500"
                                class="w-full rounded-xl border border-gray-200 py-3.5 pl-9 pr-4 text-lg font-semibold text-gray-700 focus:outline-none focus:border-[#064e3b]" />
                     </div>
-                    <p class="text-xs text-gray-400 mt-1">Ingresa el monto neto que recibes.</p>
+                    <p class="text-xs text-gray-400 mt-1">Ingresa el monto neto que recibes. Si lo dejas en $0 no se sumará ningún ingreso automático.</p>
                 </div>
 
                 <!-- Frecuencia de Depósito -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">FRECUENCIA DE DEPÓSITO</label>
-                    <input type="hidden" asp-for="DepositFrequency" id="selectedFrequency" value="Quincenal" />
+                    <input type="hidden" asp-for="DepositFrequency" id="selectedFrequency" value="@Model.DepositFrequency" />
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <!-- Opción 1: Cada 15 días / Quincenal -->
-                        <button type="button" onclick="selectFrequency('Quincenal', this)"
+                        <button type="button" data-freq="Quincenal" onclick="selectFrequency('Quincenal', this)"
                                 class="freq-btn flex items-center justify-between p-4 rounded-xl border-2 border-[#064e3b] bg-emerald-50/50 text-left transition-all">
                             <div>
                                 <p class="text-xs text-gray-500 font-medium">Cada 15 días</p>
@@ -78,7 +115,7 @@
                         </button>
 
                         <!-- Opción 2: Cada mes / Mensual -->
-                        <button type="button" onclick="selectFrequency('Mensual', this)"
+                        <button type="button" data-freq="Mensual" onclick="selectFrequency('Mensual', this)"
                                 class="freq-btn flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white text-left transition-all">
                             <div>
                                 <p class="text-xs text-gray-500 font-medium">Cada mes</p>
@@ -88,7 +125,7 @@
                         </button>
 
                         <!-- Opción 3: Personalizado -->
-                        <button type="button" onclick="selectFrequency('Personalizado', this)"
+                        <button type="button" data-freq="Personalizado" onclick="selectFrequency('Personalizado', this)"
                                 class="freq-btn flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white text-left transition-all">
                             <div>
                                 <p class="text-xs text-gray-500 font-medium">Personalizado</p>
@@ -97,10 +134,42 @@
                             <i class="bi bi-circle text-gray-300 text-lg check-icon"></i>
                         </button>
                     </div>
+
+                    <!-- Panel Personalizado -->
+                    <div id="customFrequencyPanel" class="mt-4 hidden rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 space-y-4 transition-all">
+                        <p class="text-sm text-[#064e3b] font-semibold flex items-center gap-2">
+                            <i class="bi bi-calendar-event"></i> Frecuencia personalizada
+                        </p>
+
+                        <div>
+                            <label asp-for="DepositStartDate" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">PRIMER DÍA QUE SE SUMARÁ</label>
+                            <input asp-for="DepositStartDate" type="date"
+                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-700 focus:outline-none focus:border-[#064e3b]" />
+                            <span asp-validation-for="DepositStartDate" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="DepositIntervalDays" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">CADA CUÁNTOS DÍAS SE SUMA</label>
+                            <input asp-for="DepositIntervalDays" type="number" min="1" max="31" placeholder="7"
+                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-700 focus:outline-none focus:border-[#064e3b]" />
+                            <span asp-validation-for="DepositIntervalDays" class="text-xs text-red-500 mt-1 block"></span>
+                            <p class="text-xs text-gray-400 mt-1">Máximo 31 días. Ejemplo: primer día el 1 de noviembre y 7 días — se sumará automáticamente el 8.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Card 3: Seguridad y Sesión -->
+        <!-- Botón Guardar Cambios (dentro del form principal) -->
+            <div class="flex justify-end pt-2">
+                <button type="submit"
+                        class="px-8 py-3 bg-[#064e3b] hover:bg-[#04382a] text-white font-bold text-sm rounded-full shadow-md transition-all">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+
+        <!-- Card 3: Seguridad y Sesión (fuera del form de guardado para no anidar
+             el form de Cerrar Sesión, lo que rompería el form principal) -->
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-emerald-50 space-y-6">
                 <h2 class="text-lg font-bold text-[#064e3b]">Seguridad y Sesión</h2>
 
@@ -110,9 +179,43 @@
                         <h3 class="text-sm font-bold text-gray-800">Contraseña</h3>
                         <p class="text-xs text-gray-400">Última actualización hace 3 meses</p>
                     </div>
-                    <button type="button" class="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition-colors">
+                    <button type="button" id="togglePasswordForm"
+                            onclick="togglePasswordForm()"
+                            class="px-4 py-2 rounded-xl border border-emerald-300 text-[#064e3b] text-xs font-semibold hover:bg-emerald-50 transition-colors">
                         Cambiar Contraseña
                     </button>
+                </div>
+
+                <div id="passwordChangePanel" class="hidden mt-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 space-y-4">
+                    <form asp-controller="Settings" asp-action="ChangePassword" method="post" class="space-y-4">
+                        <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm"></div>
+
+                        <div>
+                            <label asp-for="CurrentPassword" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">CONTRASEÑA ACTUAL</label>
+                            <input asp-for="CurrentPassword" type="password"
+                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-700 focus:outline-none focus:border-[#064e3b]" />
+                            <span asp-validation-for="CurrentPassword" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="NewPassword" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">NUEVA CONTRASEÑA</label>
+                            <input asp-for="NewPassword" type="password"
+                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-700 focus:outline-none focus:border-[#064e3b]" />
+                            <span asp-validation-for="NewPassword" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="ConfirmPassword" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">CONFIRMAR NUEVA CONTRASEÑA</label>
+                            <input asp-for="ConfirmPassword" type="password"
+                                   class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-700 focus:outline-none focus:border-[#064e3b]" />
+                            <span asp-validation-for="ConfirmPassword" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+
+                        <button type="submit"
+                                class="px-6 py-2.5 bg-[#064e3b] hover:bg-[#04382a] text-white font-bold text-sm rounded-full shadow-md transition-all">
+                            Guardar Contraseña
+                        </button>
+                    </form>
                 </div>
 
                 <hr class="border-gray-100" />
@@ -123,28 +226,33 @@
                         <h3 class="text-sm font-bold text-red-500">Cerrar Sesión</h3>
                         <p class="text-xs text-gray-400">Saldrás de tu cuenta en este dispositivo.</p>
                     </div>
-                    <a asp-controller="Account" asp-action="Logout" 
-                       class="px-4 py-2 rounded-xl border border-red-200 text-red-500 text-xs font-semibold hover:bg-red-50 transition-colors flex items-center gap-1.5">
-                        <i class="bi bi-box-arrow-right"></i>
-                        Cerrar Sesión
-                    </a>
+                    <form asp-controller="Auth" asp-action="Logout" method="post" class="inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                class="px-4 py-2 rounded-xl border border-red-200 text-red-500 text-xs font-semibold hover:bg-red-50 transition-colors flex items-center gap-1.5">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Cerrar Sesión
+                        </button>
+                    </form>
                 </div>
             </div>
-
-            <!-- Botón Guardar Cambios -->
-            <div class="flex justify-end pt-2">
-                <button type="submit" 
-                        class="px-8 py-3 bg-[#064e3b] hover:bg-[#04382a] text-white font-bold text-sm rounded-full shadow-md transition-all">
-                    Guardar Cambios
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
 @section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
     <script>
+        function previewProfilePhoto(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('profilePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
         function selectFrequency(value, btn) {
             document.getElementById('selectedFrequency').value = value;
 
@@ -179,6 +287,56 @@
             if (activeIcon) {
                 activeIcon.className = 'bi bi-check-circle-fill text-[#064e3b] text-lg check-icon';
             }
+
+            // Mostrar/ocultar el panel de personalizado
+            var panel = document.getElementById('customFrequencyPanel');
+            if (panel) {
+                panel.classList.toggle('hidden', value !== 'Personalizado');
+            }
         }
+
+        // Toggle del tooltip de ayuda
+        (function () {
+            var toggle = document.getElementById('incomeInfoToggle');
+            var tooltip = document.getElementById('incomeInfoTooltip');
+            if (toggle && tooltip) {
+                toggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var hidden = tooltip.classList.toggle('hidden');
+                    toggle.setAttribute('aria-expanded', String(!hidden));
+                });
+                document.addEventListener('click', function (e) {
+                    if (!tooltip.classList.contains('hidden')) {
+                        tooltip.classList.add('hidden');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        })();
+
+        // Toggle del formulario de cambio de contraseña
+        function togglePasswordForm() {
+            var panel = document.getElementById('passwordChangePanel');
+            if (panel) {
+                var wasHidden = panel.classList.contains('hidden');
+                panel.classList.toggle('hidden');
+                var btn = document.getElementById('togglePasswordForm');
+                if (btn) {
+                    btn.textContent = wasHidden ? 'Cancelar' : 'Cambiar Contraseña';
+                }
+            }
+        }
+
+        // Activar la frecuencia guardada al cargar la página
+        (function () {
+            var saved = document.getElementById('selectedFrequency').value;
+            var target = document.querySelector('.freq-btn[data-freq="' + saved + '"]');
+            if (target) {
+                selectFrequency(saved, target);
+            } else {
+                var panel = document.getElementById('customFrequencyPanel');
+                if (panel) panel.classList.add('hidden');
+            }
+        })();
     </script>
 }

@@ -19,6 +19,22 @@ public class ApplicationUser : IdentityUser
     [StringLength(3)]
     public string Currency { get; set; } = "MXN";
 
+    [MaxLength]
+    public string? ProfilePicture { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? SalaryAmount { get; set; }
+
+    [StringLength(50)]
+    public string DepositFrequency { get; set; } = "Quincenal";
+
+    public DateTime? DepositStartDate { get; set; }
+
+    [Range(1, 31)]
+    public int? DepositIntervalDays { get; set; }
+
+    public DateTime? LastRecurringIncomeAt { get; set; }
+
     [Range(0, double.MaxValue)]
     public decimal? MonthlyBudget { get; set; }
 

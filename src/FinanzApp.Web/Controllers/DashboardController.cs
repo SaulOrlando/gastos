@@ -11,17 +11,26 @@ public class DashboardController : Controller
 {
     private readonly IDashboardService _dashboardService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IRecurringIncomeService _recurringIncomeService;
 
     public DashboardController(
         IDashboardService dashboardService,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        IRecurringIncomeService recurringIncomeService)
     {
         _dashboardService = dashboardService;
         _userManager = userManager;
+        _recurringIncomeService = recurringIncomeService;
     }
 
     public async Task<IActionResult> Index(int? year, int? month)
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return RedirectToAction("Login", "Auth");
+
+        // Procesa los depósitos automáticos (sueldo por frecuencia) que ya estén vencidos.
+        await _recurringIncomeService.ProcessAsync(user);
+
         var userId = _userManager.GetUserId(User)!;
         var model = await _dashboardService.GetDashboardSummaryAsync(userId, year, month);
         return View(model);

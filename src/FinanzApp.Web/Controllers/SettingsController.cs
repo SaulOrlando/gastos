@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using FinanzApp.Web.Models;
+using FinanzApp.Web.Services;
 using FinanzApp.Web.ViewModels;
 
 namespace FinanzApp.Web.Controllers
@@ -10,10 +11,17 @@ namespace FinanzApp.Web.Controllers
     public class SettingsController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IRecurringIncomeService _recurringIncomeService;
 
-        public SettingsController(UserManager<ApplicationUser> userManager)
+        public SettingsController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            IRecurringIncomeService recurringIncomeService)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
+            _recurringIncomeService = recurringIncomeService;
         }
 
         [HttpGet]
@@ -24,11 +32,18 @@ namespace FinanzApp.Web.Controllers
 
             var model = new SettingsViewModel
             {
-                FirstName = user.FirstName ?? string.Empty,
-                LastName = user.LastName ?? string.Empty,
+                FullName = string.IsNullOrWhiteSpace(user.FullName)
+                    ? $"{user.FirstName} {user.LastName}".Trim()
+                    : user.FullName,
                 Email = user.Email ?? string.Empty,
-                // Si guardas preferencia de moneda o notificaciones en ApplicationUser, asígnalas aquí:
-                // Currency = user.Currency,
+                ProfilePicture = user.ProfilePicture,
+                SalaryAmount = user.SalaryAmount,
+                DepositFrequency = string.IsNullOrWhiteSpace(user.DepositFrequency) ? "Quincenal" : user.DepositFrequency,
+                DepositStartDate = user.DepositStartDate,
+                DepositIntervalDays = user.DepositIntervalDays,
+                Currency = user.Currency,
+                MonthlyBudgetLimit = user.MonthlyBudget,
+                EnableNotifications = user.RemindersEnabled,
             };
 
             return View(model);
@@ -41,24 +56,87 @@ namespace FinanzApp.Web.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
+            // Ajustes que vienen desde la vista como campos ocultos / no editables.
+            model.Currency = user.Currency;
+            model.MonthlyBudgetLimit = user.MonthlyBudget;
+            model.EnableNotifications = user.RemindersEnabled;
+            model.Email = user.Email ?? string.Empty;
+
+            // Estos campos no se envían desde el formulario; se rellenan arriba desde
+            // el usuario. Hay que quitar sus errores de ModelState, si los hay, para
+            // que no invaliden el guardado (p. ej. Currency es [Required]).
+            ModelState.Remove(nameof(SettingsViewModel.Currency));
+            ModelState.Remove(nameof(SettingsViewModel.Email));
+            ModelState.Remove(nameof(SettingsViewModel.MonthlyBudgetLimit));
+            ModelState.Remove(nameof(SettingsViewModel.EnableNotifications));
+
+            // DepositFrequency es un string no anulable; si el navegador no lo envía
+            // (hidden vacío por usuarios previos a la migración) dispararía un error
+            // [Required] implícito que impediría guardar. Se asigna un default.
+            if (string.IsNullOrWhiteSpace(model.DepositFrequency))
+            {
+                ModelState.Remove(nameof(SettingsViewModel.DepositFrequency));
+                model.DepositFrequency = "Quincenal";
+            }
+
             if (!ModelState.IsValid)
             {
                 return View("Index", model);
             }
 
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            
-            if (user.Email != model.Email)
+            var nameParts = model.FullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
+            // Capturamos los valores previos ANTES de sobrescribirlos, para poder
+            // detectar si el calendario de depósitos cambió (comparar después sería
+            // siempre falso porque user ya tendría los valores del modelo).
+            var previousSchedule = (user.SalaryAmount, user.DepositFrequency, user.DepositStartDate, user.DepositIntervalDays);
+
+            user.FullName = model.FullName?.Trim() ?? string.Empty;
+            user.FirstName = nameParts.Length > 0 ? nameParts[0] : string.Empty;
+            user.LastName = nameParts.Length > 1 ? string.Join(' ', nameParts.Skip(1)) : string.Empty;
+            user.SalaryAmount = model.SalaryAmount;
+            user.DepositFrequency = string.IsNullOrWhiteSpace(model.DepositFrequency) ? "Quincenal" : model.DepositFrequency.Trim();
+            user.DepositStartDate = model.DepositStartDate;
+            user.DepositIntervalDays = model.DepositIntervalDays;
+
+            if (user.DepositFrequency == "Personalizado"
+                && (user.DepositStartDate is null || user.DepositIntervalDays is null))
             {
-                user.Email = model.Email;
-                user.UserName = model.Email;
+                ModelState.AddModelError(string.Empty, "Para el depósito personalizado indica el primer día y la cantidad de días.");
+                return View("Index", model);
+            }
+
+            // Si cambió la configuración del depósito, se reinicia el progreso para
+            // recalcular los próximos depósitos automáticos de forma correcta.
+            var scheduleChanged = previousSchedule.SalaryAmount != user.SalaryAmount
+                || previousSchedule.DepositFrequency != user.DepositFrequency
+                || previousSchedule.DepositStartDate != user.DepositStartDate
+                || previousSchedule.DepositIntervalDays != user.DepositIntervalDays;
+            if (scheduleChanged)
+            {
+                user.LastRecurringIncomeAt = null;
+            }
+
+            if (model.ProfilePictureFile is not null && model.ProfilePictureFile.Length > 0)
+            {
+                var newPicture = await SaveProfilePictureAsync(model.ProfilePictureFile);
+                if (newPicture != null)
+                {
+                    user.ProfilePicture = newPicture;
+                }
             }
 
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] = "Perfil actualizado correctamente.";
+                await _recurringIncomeService.ProcessAsync(user);
+
+                // Regenera la cookie de autenticación (nombre) y la marca de seguridad.
+                // No se incluye la foto en los claims para evitar inflar la cookie.
+                await _userManager.UpdateSecurityStampAsync(user);
+                await _signInManager.RefreshSignInAsync(user);
+
+                TempData["SuccessMessage"] = "Cambios guardados correctamente.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -68,6 +146,31 @@ namespace FinanzApp.Web.Controllers
             }
 
             return View("Index", model);
+        }
+
+        private static async Task<string?> SaveProfilePictureAsync(IFormFile file)
+        {
+            if (file.Length <= 0) return null;
+
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowed.Contains(ext)) return null;
+
+            // Límite de tamaño: 1.5 MB máx para no inflar la base de datos
+            const int maxBytes = 1_500_000;
+            if (file.Length > maxBytes) return null;
+
+            var mime = ext switch
+            {
+                ".png" => "image/png",
+                ".webp" => "image/webp",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                _ => "application/octet-stream"
+            };
+
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            return $"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}";
         }
 
         [HttpPost]

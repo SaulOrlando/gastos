@@ -26,6 +26,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<ApplicationUser>(e =>
         {
             e.Property(x => x.MonthlyBudget).HasColumnType("decimal(18,2)");
+            e.Property(x => x.SalaryAmount).HasColumnType("decimal(18,2)");
         });
 
         builder.Entity<Expense>(e =>

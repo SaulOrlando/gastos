@@ -78,4 +78,10 @@ public class IncomeRepository : IIncomeRepository
             .Where(i => i.UserId == userId && i.Date <= untilDate)
             .SumAsync(i => (decimal?)i.Amount) ?? 0m;
     }
+
+    public async Task SaveRecurringProgressAsync(ApplicationUser user)
+    {
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
 }
