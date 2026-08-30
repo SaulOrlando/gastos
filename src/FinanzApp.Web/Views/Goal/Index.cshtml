@@ -1,0 +1,114 @@
+@model FinanzApp.Web.ViewModels.SavingsGoalListViewModel
+@{
+    ViewData["Title"] = "Mis Metas de Ahorro";
+}
+
+<!-- Header -->
+<header class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface">Mis Metas de Ahorro</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant">
+            Mantén el enfoque y alcanza tus objetivos financieros.
+        </p>
+    </div>
+    <a asp-controller="Goal" asp-action="Create"
+       class="inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-2 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
+        <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+        Nueva meta
+    </a>
+</header>
+
+@if (TempData["GoalSaved"] is true)
+{
+    <div class="bg-secondary-container/30 border border-secondary/20 text-on-surface rounded-[16px] px-4 py-3 font-body-sm text-body-sm flex items-center gap-2" role="status">
+        <span class="material-symbols-outlined text-secondary" style="font-size: 18px;">check_circle</span>
+        ¡Listo! Tu meta se actualizó.
+    </div>
+}
+@if (TempData["GoalError"] is string goalError)
+{
+    <div class="bg-error-container/30 border border-error/20 text-error rounded-[16px] px-4 py-3 font-body-sm text-body-sm flex items-center gap-2" role="alert">
+        <span class="material-symbols-outlined text-error" style="font-size: 18px;">error</span>
+        @goalError
+    </div>
+}
+
+<section aria-labelledby="section-title">
+    <h2 id="section-title" class="font-headline-lg text-headline-lg text-on-surface mb-5">Todas mis metas</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @if (@Model.Goals.Count == 0)
+        {
+            <div class="lg:col-span-3 bg-surface-container-low rounded-[16px] p-container-padding shadow-ambient border-2 border-dashed border-outline-variant text-center" aria-label="Aún no has creado metas">
+                <div class="w-16 h-16 mx-auto rounded-full bg-primary-container/10 flex items-center justify-center mb-4" aria-hidden="true">
+                    <span class="material-symbols-outlined text-primary" style="font-size: 32px;">flag</span>
+                </div>
+                <h3 class="font-headline-lg text-headline-lg text-on-surface">Aún no tienes metas</h3>
+                <p class="mt-2 font-body-md text-body-md text-on-surface-variant max-w-md mx-auto">
+                    Crea tu primera meta de ahorro y empieza a ver cómo crece tu dinero.
+                </p>
+                <div class="mt-6">
+                    <a asp-controller="Goal" asp-action="Create"
+                       class="inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-3 rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-opacity">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                        Crear mi primera meta
+                    </a>
+                </div>
+            </div>
+        }
+
+        @foreach (var goal in Model.Goals)
+        {
+            var isLowProgress = goal.ProgressPercentage < 40;
+            var progressColor = isLowProgress ? "bg-orange-500" : "bg-[#14532d]";
+
+            <article class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[200px]">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-full bg-[#14532d]/10 flex items-center justify-center" aria-hidden="true">
+                            <span class="material-symbols-outlined text-[#14532d]">flag</span>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-600">@goal.CategoryTag</span>
+                    </div>
+                    <h3 class="mt-4 font-bold text-lg text-gray-900">@goal.Name</h3>
+                    <div class="mt-2 flex items-baseline justify-between">
+                        <span class="font-headline-lg text-headline-lg text-[#14532d]">@goal.CurrencySymbol@goal.CurrentAmount.ToString("N2")</span>
+                        <span class="font-body-sm text-body-sm text-gray-500">de @goal.CurrencySymbol@goal.TargetAmount.ToString("N2")</span>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden" role="progressbar"
+                         aria-valuenow="@goal.ProgressPercentage" aria-valuemin="0" aria-valuemax="100"
+                         aria-label="Progreso de @goal.Name">
+                        <div class="h-full @progressColor rounded-full transition-all duration-500"
+                             style="width: @goal.ProgressPercentage%;"></div>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between">
+                        <span class="text-xs font-semibold @(isLowProgress ? "text-orange-600" : "text-[#14532d]")">@goal.ProgressPercentage%</span>
+                        <form asp-controller="Goal" asp-action="AddFunds" method="post" class="flex items-center gap-2" onsubmit="return true;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="goalId" value="@goal.Id" />
+                            <label for="amount-@goal.Id" class="sr-only">Monto a abonar a @goal.Name</label>
+                            <input id="amount-@goal.Id" type="number" name="amount" min="0.01" step="0.01"
+                                   placeholder="Abonar"
+                                   class="w-24 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#14532d]/40" required />
+                            <button type="submit"
+                                    class="bg-[#14532d] hover:bg-opacity-90 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-opacity">
+                                + Abonar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        }
+
+        <!-- Tarjeta "Crear Nueva Meta" -->
+        <a asp-controller="Goal" asp-action="Create"
+           class="border-2 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center min-h-[180px] hover:border-[#14532d] hover:bg-gray-50 transition-all cursor-pointer group">
+            <span class="w-12 h-12 rounded-full bg-[#14532d]/10 flex items-center justify-center group-hover:bg-[#14532d] transition-colors" aria-hidden="true">
+                <span class="material-symbols-outlined text-[#14532d] group-hover:text-white">add</span>
+            </span>
+            <p class="mt-3 font-semibold text-gray-700 group-hover:text-[#14532d]">Crear nueva meta</p>
+        </a>
+    </div>
+</section>

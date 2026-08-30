@@ -3,6 +3,7 @@ using FinanzApp.Web.Models;
 using FinanzApp.Web.Repositories;
 using FinanzApp.Web.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +21,8 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
 })
-.AddEntityFrameworkStores<ApplicationDbContext>();
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -35,6 +37,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
+builder.Services.AddScoped<ISavingsGoalRepository, SavingsGoalRepository>();
 
 // Dependency Injection: Services
 builder.Services.AddScoped<IDashboardService, DashboardService>();
@@ -43,6 +46,10 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<IHistoryService, HistoryService>();
 builder.Services.AddScoped<IRecurringIncomeService, RecurringIncomeService>();
+builder.Services.AddScoped<ISavingsGoalService, SavingsGoalService>();
+
+// Email (notificaciones / recuperación de contraseña)
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
 // Claims principal factory: injecta el claim FullName (nombre) en la identidad
 builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
