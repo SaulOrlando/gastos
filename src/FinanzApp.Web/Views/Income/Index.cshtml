@@ -1,0 +1,258 @@
+@model FinanzApp.Web.ViewModels.IncomeIndexViewModel
+@{
+    ViewData["Title"] = "Mis Ingresos";
+}
+@functions {
+    private static (string icon, string hex) CategoryVisual(string category)
+    {
+        var c = category.Trim().ToLowerInvariant();
+
+        return c switch
+        {
+            "sueldo" or "salario" or "nomina" or "nómina" or "pago" or "mesada" or "quincena" => ("work", "#0b5d34"),
+            "beca" or "becas" or "beca universitaria" => ("school", "#9C27B0"),
+            "venta" or "ventas" or "negocio" or "negocios" or "clases" => ("storefront", "#FF9800"),
+            "bono" or "bonus" or "reembolso" or "devolucion" or "devolución" => ("redeem", "#006d3d"),
+            _ => ("payments", "#707a70")
+        };
+    }
+
+    private static string DateText(DateTime date)
+    {
+        var today = DateTime.Today;
+
+        if (date.Date == today)
+        {
+            return "Hoy";
+        }
+
+        if (date.Date == today.AddDays(-1))
+        {
+            return "Ayer";
+        }
+
+        return $"{date:dd MMM}";
+    }
+}
+
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Encabezado y Buscador -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 class="font-headline-xl text-headline-xl text-primary">Mis Ingresos</h1>
+            <p class="text-on-surface-variant">Revisa tus entradas de dinero. ¡Sigue creciendo!</p>
+        </div>
+        <div class="relative w-full md:w-80">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" style="font-size: 20px;">search</span>
+            <input id="incomeSearch" type="text" placeholder="Buscar ingresos..."
+                   class="w-full pl-12 pr-4 py-3 rounded-full border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm text-body-sm text-body-sm placeholder:text-outline" />
+        </div>
+    </div>
+
+    <!-- Tarjeta Resumen Total Ingresado -->
+    <div class="bg-surface-container-lowest rounded-2xl p-container-padding shadow-ambient relative">
+        <p class="font-label-bold text-label-bold text-on-surface-variant uppercase">Total ingresado este mes</p>
+        <div class="mt-2 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div class="font-headline-xl text-[48px] leading-tight font-bold text-secondary">
+                +@Model.CurrencySymbol@Model.TotalIncomes.ToString("N2")
+            </div>
+            <div class="relative self-start md:self-auto">
+                <button type="button" id="monthMenuButton" data-month-toggle
+                        aria-haspopup="true" aria-expanded="false"
+                        class="flex items-center gap-2 bg-surface-container rounded-full px-4 py-2 border border-outline-variant hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-1 focus:ring-primary">
+                    <span class="material-symbols-outlined text-outline text-sm">calendar_today</span>
+                    <span class="font-label-bold text-label-bold text-on-surface capitalize">@Model.MonthName</span>
+                    <span class="material-symbols-outlined text-outline text-sm">expand_more</span>
+                </button>
+
+                <div id="monthMenu" class="hidden absolute right-0 mt-2 w-72 rounded-2xl bg-surface-container-lowest shadow-lg border border-outline-variant overflow-hidden z-20">
+                    @if (Model.AvailableMonths.Any())
+                    {
+                        @foreach (var m in Model.AvailableMonths)
+                        {
+                            <a asp-controller="Income" asp-action="Index" asp-route-year="@m.Year" asp-route-month="@m.Month"
+                               class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-container transition-colors @(m.IsSelected ? "bg-surface-container" : "")"
+                               aria-current="@(m.IsSelected ? "true" : null)">
+                                <span class="font-label-md text-label-md font-bold text-on-surface capitalize">@m.MonthName</span>
+                                @if (m.TotalIncomes > 0)
+                                {
+                                    <span class="text-secondary font-label-bold text-label-bold">+@Model.CurrencySymbol@m.TotalIncomes.ToString("N0")</span>
+                                }
+                                @if (m.IsSelected)
+                                {
+                                    <span class="material-symbols-outlined text-primary text-sm">check</span>
+                                }
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <p class="px-4 py-3 text-on-surface-variant font-body-sm">Aún no hay meses registrados.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros de Categorías -->
+    <div>
+        <h2 class="font-label-bold text-label-bold text-outline uppercase mb-4">Categorías</h2>
+        <div id="categoryFilters" class="flex flex-wrap gap-3" role="group" aria-label="Filtrar por categoría">
+            <button type="button" data-category-filter="" aria-pressed="true"
+                    class="bg-primary text-on-primary rounded-full px-4 py-2 flex items-center gap-2 font-label-md text-label-md shadow-sm active">
+                <span class="material-symbols-outlined text-sm">check</span> Todas
+            </button>
+            @foreach (var cat in Model.Categories)
+            {
+                var visual = CategoryVisual(cat.Name);
+                <button type="button" data-category-filter="@cat.Name" aria-pressed="false"
+                        class="bg-surface-container hover:bg-surface-container-high text-on-surface rounded-full px-4 py-2 flex items-center gap-2 font-label-md text-label-md border border-outline-variant transition-colors">
+                    <span class="material-symbols-outlined text-sm" style="color: @visual.hex;">@visual.icon</span> @cat.Name
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Lista de Ingresos -->
+    <div class="bg-surface-container-lowest rounded-2xl p-container-padding shadow-ambient">
+        @if (Model.Incomes.Any())
+        {
+            <div id="incomeList" class="flex flex-col gap-2">
+                @foreach (var item in Model.Incomes)
+                {
+                    var visual = CategoryVisual(item.Category);
+                    var title = string.IsNullOrWhiteSpace(item.Note) ? item.Category : item.Note;
+
+                    <div data-category="@item.Category"
+                         data-search="@(item.Note + " " + item.Category)"
+                         class="flex items-center justify-between p-4 hover:bg-surface rounded-xl transition-colors group border border-transparent hover:border-surface-variant">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background: color-mix(in srgb, @visual.hex 12%, transparent); color: @visual.hex;">
+                                <span class="material-symbols-outlined">@visual.icon</span>
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="font-body-md font-medium text-on-surface truncate">@title</h3>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant">@item.Category • @DateText(item.Date)</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <div class="font-headline-lg-mobile font-bold text-secondary">+@Model.CurrencySymbol@item.Amount.ToString("N2")</div>
+                            <div class="flex items-center gap-1">
+                                <a asp-controller="Income" asp-action="Edit" asp-route-id="@item.Id"
+                                   class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors"
+                                   aria-label="Editar ingreso @title">
+                                    <span class="material-symbols-outlined text-lg">edit</span>
+                                </a>
+                                <form asp-controller="Income" asp-action="Delete" asp-route-id="@item.Id" method="post"
+                                      onsubmit="return confirm('¿Eliminar este ingreso de @Model.CurrencySymbol@item.Amount.ToString("N2")?');">
+                                    <button type="submit"
+                                            class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-red-50 hover:text-error transition-colors"
+                                            aria-label="Eliminar ingreso @title">
+                                        <span class="material-symbols-outlined text-lg">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div id="incomeEmpty" class="hidden p-8 text-center text-on-surface-variant font-body-sm">
+                No hay ingresos que coincidan con tu búsqueda.
+            </div>
+
+            <div class="mt-6 flex justify-center border-t border-surface-variant pt-6">
+                <a asp-controller="History" asp-action="Index"
+                   class="text-primary font-label-md text-label-md font-bold hover:bg-primary-container/10 px-6 py-2 rounded-full transition-colors">
+                    Ver ingresos anteriores
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="p-8 text-center">
+                <span class="material-symbols-outlined text-outline" style="font-size: 40px;">savings</span>
+                <p class="mt-3 font-body-sm text-on-surface-variant">Aún no has registrado ingresos este mes.</p>
+                <a asp-controller="Income" asp-action="Create"
+                   class="inline-block mt-4 bg-primary text-on-primary px-6 py-3 rounded-full font-label-md text-label-md font-bold shadow-sm hover:bg-primary-container transition-colors">
+                    Registrar tu primer ingreso
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    (function () {
+        var toggle = document.querySelector('[data-month-toggle]');
+        var menu = document.getElementById('monthMenu');
+        if (toggle && menu) {
+            toggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var hidden = menu.classList.toggle('hidden');
+                toggle.setAttribute('aria-expanded', String(!hidden));
+            });
+
+            document.addEventListener('click', function () {
+                if (!menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+    })();
+</script>
+
+<script>
+    (function () {
+        var search = document.getElementById('incomeSearch');
+        var list = document.getElementById('incomeList');
+        var empty = document.getElementById('incomeEmpty');
+        var filters = document.getElementById('categoryFilters');
+        if (!search || !list || !filters) return;
+
+        var chips = filters.querySelectorAll('[data-category-filter]');
+        var activeChipClass = ['bg-primary', 'text-on-primary', 'shadow-sm'];
+        var idleChipClass = ['bg-surface-container', 'hover:bg-surface-container-high', 'text-on-surface', 'border', 'border-outline-variant'];
+
+        function setActive(chip, isActive) {
+            if (isActive) {
+                idleChipClass.forEach(function (c) { chip.classList.remove(c); });
+                activeChipClass.forEach(function (c) { chip.classList.add(c); });
+                chip.setAttribute('aria-pressed', 'true');
+            } else {
+                activeChipClass.forEach(function (c) { chip.classList.remove(c); });
+                idleChipClass.forEach(function (c) { chip.classList.add(c); });
+                chip.setAttribute('aria-pressed', 'false');
+            }
+        }
+
+        function apply() {
+            var q = search.value.trim().toLowerCase();
+            var activeCat = (filters.querySelector('[data-category-filter].active') || { dataset: { categoryFilter: '' } }).dataset.categoryFilter;
+            var visible = 0;
+
+            list.querySelectorAll('[data-category]').forEach(function (row) {
+                var matchCat = !activeCat || row.dataset.category === activeCat;
+                var matchQ = !q || (row.dataset.search || '').toLowerCase().indexOf(q) !== -1;
+                var show = matchCat && matchQ;
+                row.classList.toggle('hidden', !show);
+                if (show) visible++;
+            });
+
+            if (empty) empty.classList.toggle('hidden', visible !== 0);
+        }
+
+        chips.forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                chips.forEach(function (c) { c.classList.remove('active'); setActive(c, false); });
+                chip.classList.add('active');
+                setActive(chip, true);
+                apply();
+            });
+        });
+
+        search.addEventListener('input', apply);
+    })();
+</script>

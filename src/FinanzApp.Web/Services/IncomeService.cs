@@ -87,6 +87,20 @@ public class IncomeService : IIncomeService
         return categories.Any(c => string.Equals(c.Name, category, StringComparison.OrdinalIgnoreCase));
     }
 
+    public async Task<List<IncomeListItemViewModel>> GetAllIncomesAsync(string userId)
+    {
+        var incomes = await _incomeRepository.GetAllByUserIdAsync(userId);
+
+        return incomes.Select(i => new IncomeListItemViewModel
+        {
+            Id = i.Id,
+            Amount = i.Amount,
+            Category = i.Category,
+            Date = i.Date,
+            Note = i.Note
+        }).ToList();
+    }
+
     public async Task<List<IncomeListItemViewModel>> GetIncomesForMonthAsync(string userId, int year, int month, int? limit = null)
     {
         var incomes = await _incomeRepository.GetMonthlyIncomesAsync(userId, year, month);

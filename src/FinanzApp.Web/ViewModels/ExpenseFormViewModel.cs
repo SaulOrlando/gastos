@@ -27,8 +27,4 @@ public class ExpenseFormViewModel
     public List<CategoryViewModel> Categories { get; set; } = new();
 
     public string CurrencySymbol { get; set; } = "$";
-
-    public string CurrentMonthName { get; set; } = string.Empty;
-
-    public List<ExpenseListItemViewModel> CurrentMonthExpenses { get; set; } = new();
 }

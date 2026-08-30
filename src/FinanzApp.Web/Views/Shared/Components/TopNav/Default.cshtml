@@ -1,6 +1,9 @@
 @model FinanzApp.Web.ViewModels.UserNavViewModel
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var isAddingIncome = controller == "Income" && action == "Create";
+    var isAddingExpense = controller == "Expense" && action == "Create";
     var avatarUrl = !string.IsNullOrEmpty(Model.ProfilePicture)
         ? Model.ProfilePicture
         : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.FullName)}&background=04382a&color=fff";
@@ -19,7 +22,7 @@
             <!-- Enlaces centrales -->
             <div class="flex items-center gap-6 text-sm font-medium">
                 <a asp-controller="Dashboard" asp-action="Index"
-                   class="@(controller == "Dashboard" ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
+                   class="@(controller == "Dashboard" || isAddingIncome || isAddingExpense ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
                     Dashboard
                 </a>
                 <a asp-controller="History" asp-action="Index"
@@ -27,11 +30,11 @@
                     Historial
                 </a>
                 <a asp-controller="Income" asp-action="Index"
-                   class="@(controller == "Income" ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
+                   class="@(controller == "Income" && !isAddingIncome ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
                     Ingresos
                 </a>
                 <a asp-controller="Expense" asp-action="Index"
-                   class="@(controller == "Expense" ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
+                   class="@(controller == "Expense" && !isAddingExpense ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
                     Gastos
                 </a>
             </div>

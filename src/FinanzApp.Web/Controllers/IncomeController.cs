@@ -25,6 +25,69 @@ public class IncomeController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> Index(int? year, int? month)
+    {
+        var user = await GetCurrentUserAsync();
+
+        if (user is null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var now = DateTime.UtcNow;
+        var targetYear = year ?? now.Year;
+        var targetMonth = month ?? now.Month;
+
+        var allIncomes = await _incomeService.GetAllIncomesAsync(user.Id);
+
+        var availableMonths = allIncomes
+            .GroupBy(i => new { i.Date.Year, i.Date.Month })
+            .OrderByDescending(g => g.Key.Year)
+            .ThenByDescending(g => g.Key.Month)
+            .Select(g => new IncomeMonthNavItem
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                MonthName = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMMM yyyy"),
+                TotalIncomes = g.Sum(i => i.Amount),
+                IsSelected = g.Key.Year == targetYear && g.Key.Month == targetMonth
+            })
+            .ToList();
+
+        if (!availableMonths.Any(m => m.IsSelected))
+        {
+            availableMonths.Insert(0, new IncomeMonthNavItem
+            {
+                Year = targetYear,
+                Month = targetMonth,
+                MonthName = new DateTime(targetYear, targetMonth, 1).ToString("MMMM yyyy"),
+                TotalIncomes = 0,
+                IsSelected = true
+            });
+        }
+
+        var monthIncomes = allIncomes
+            .Where(i => i.Date.Year == targetYear && i.Date.Month == targetMonth)
+            .OrderByDescending(i => i.Date)
+            .ToList();
+
+        var model = new IncomeIndexViewModel
+        {
+            TotalIncomes = monthIncomes.Sum(i => i.Amount),
+            MonthName = new DateTime(targetYear, targetMonth, 1).ToString("MMMM yyyy"),
+            Year = targetYear,
+            Month = targetMonth,
+            IsCurrentMonth = targetYear == now.Year && targetMonth == now.Month,
+            CurrencySymbol = GetCurrencySymbol(user.Currency),
+            Categories = await _categoryService.GetForUserAsync(user.Id),
+            Incomes = monthIncomes,
+            AvailableMonths = availableMonths
+        };
+
+        return View(model);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Create(int? year, int? month)
     {
         var user = await GetCurrentUserAsync();
@@ -163,7 +226,7 @@ public class IncomeController : Controller
             return NotFound();
         }
 
-        return RedirectToAction("Index", "Dashboard", new { year = existing?.Date.Year, month = existing?.Date.Month });
+        return RedirectToAction("Index", "Income", new { year = existing?.Date.Year, month = existing?.Date.Month });
     }
 
     [HttpPost]
@@ -241,12 +304,8 @@ public class IncomeController : Controller
 
     private async Task<IncomeFormViewModel> BuildCreateModelAsync(ApplicationUser user, IncomeFormViewModel model)
     {
-        var now = DateTime.UtcNow;
-
         model.Categories = await _categoryService.GetForUserAsync(user.Id);
         model.CurrencySymbol = GetCurrencySymbol(user.Currency);
-        model.CurrentMonthName = now.ToString("MMMM yyyy");
-        model.CurrentMonthIncomes = await _incomeService.GetIncomesForMonthAsync(user.Id, now.Year, now.Month, 5);
 
         return model;
     }

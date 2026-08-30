@@ -15,4 +15,6 @@ public interface IIncomeService
     Task<bool> IsValidCategoryAsync(string category, string userId);
 
     Task<List<IncomeListItemViewModel>> GetIncomesForMonthAsync(string userId, int year, int month, int? limit = null);
+
+    Task<List<IncomeListItemViewModel>> GetAllIncomesAsync(string userId);
 }

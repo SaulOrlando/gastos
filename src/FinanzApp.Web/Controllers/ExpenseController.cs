@@ -241,12 +241,8 @@ public class ExpenseController : Controller
 
     private async Task<ExpenseFormViewModel> BuildCreateModelAsync(ApplicationUser user, ExpenseFormViewModel model)
     {
-        var now = DateTime.UtcNow;
-
         model.Categories = await _categoryService.GetForUserAsync(user.Id);
         model.CurrencySymbol = GetCurrencySymbol(user.Currency);
-        model.CurrentMonthName = now.ToString("MMMM yyyy");
-        model.CurrentMonthExpenses = await _expenseService.GetExpensesForMonthAsync(user.Id, now.Year, now.Month, 5);
 
         return model;
     }

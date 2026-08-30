@@ -149,49 +149,6 @@
             </div>
         </form>
     </div>
-
-    <!-- Gastos del Mes -->
-    <div class="w-full max-w-2xl space-y-4">
-        <h2 class="text-xl font-bold text-[#064e3b] mb-4">Gastos de @Model.CurrentMonthName</h2>
-
-        @if (!Model.CurrentMonthExpenses.Any())
-        {
-            <p class="text-gray-500 text-sm bg-white rounded-2xl p-6 text-center border border-emerald-50">
-                Aún no tienes gastos este mes. ¡Registra tu primer gasto y aparece aquí abajo!
-            </p>
-        }
-        else
-        {
-            @foreach (var item in Model.CurrentMonthExpenses)
-            {
-                <div class="bg-white rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm border border-emerald-50">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-full bg-emerald-400 text-white flex items-center justify-center font-bold shrink-0">
-                            @item.Category.Substring(0, 1).ToUpper()
-                        </div>
-                        <div class="min-w-0">
-                            <h3 class="font-bold text-gray-800 text-sm truncate">@item.Category</h3>
-                            <p class="text-xs text-gray-400 truncate">
-                                @item.Date.ToString("dd MMM yyyy")@if (!string.IsNullOrWhiteSpace(item.Note))
-                                {<text> · @item.Note</text>}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 shrink-0">
-                        <span class="font-bold text-red-500 text-sm">-@Model.CurrencySymbol@item.Amount.ToString("N2")</span>
-                        <div class="flex flex-col items-end gap-0.5">
-                            <a asp-action="Edit" asp-route-id="@item.Id"
-                               class="text-xs font-semibold text-[#064e3b] hover:underline focus:outline-none"
-                               aria-label="Editar gasto del @item.Date.ToString("dd MMM") por @Model.CurrencySymbol@item.Amount">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id"
-                               class="text-xs font-semibold text-red-500 hover:underline focus:outline-none"
-                               aria-label="Eliminar gasto del @item.Date.ToString("dd MMM") por @Model.CurrencySymbol@item.Amount">Eliminar</a>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-    </div>
 </div>
 
 @section Scripts {
