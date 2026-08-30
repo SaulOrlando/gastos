@@ -1,6 +1,57 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Política de Privacidad";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="min-h-screen bg-[#f8faf9] py-10 px-4 flex flex-col items-center">
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-sm p-8 border border-emerald-50">
+        
+        <!-- Encabezado -->
+        <div class="border-b border-gray-100 pb-6 mb-6">
+            <h1 class="text-3xl font-bold text-[#064e3b]">Política de Privacidad</h1>
+            <p class="text-sm text-gray-500 mt-1">Última actualización: Agosto 2026</p>
+        </div>
+
+        <!-- Contenido -->
+        <div class="space-y-6 text-gray-700 text-sm leading-relaxed">
+            <p>
+                En <strong>FinanzApp</strong>, nos tomamos muy en serio la seguridad y privacidad de tus datos financieros. Esta política describe cómo manejamos la información dentro de la plataforma.
+            </p>
+
+            <div>
+                <h2 class="text-base font-bold text-[#064e3b] mb-2">1. Información que recopilamos</h2>
+                <p>
+                    Únicamente guardamos los datos que tú ingresas voluntariamente para el funcionamiento de tus finanzas personales: tu nombre, correo electrónico, y los registros de tus ingresos y gastos.
+                </p>
+            </div>
+
+            <div>
+                <h2 class="text-base font-bold text-[#064e3b] mb-2">2. Uso de la Información</h2>
+                <p>
+                    Tus datos se utilizan exclusivamente para calcular tus saldos, mostrarte los resúmenes de tus categorías y permitirte llevar un control de tus presupuestos. No compartimos ni vendemos tu información a terceros.
+                </p>
+            </div>
+
+            <div>
+                <h2 class="text-base font-bold text-[#064e3b] mb-2">3. Seguridad de tus Datos</h2>
+                <p>
+                    Implementamos medidas de seguridad para proteger tu cuenta y tus registros. Toda tu información de sesión y contraseñas se almacenan de forma encriptada.
+                </p>
+            </div>
+
+            <div>
+                <h2 class="text-base font-bold text-[#064e3b] mb-2">4. Control de tu Cuenta</h2>
+                <p>
+                    Tienes control total sobre tu información. Puedes modificar tus datos de perfil en cualquier momento desde la sección de Ajustes o solicitar la eliminación de tu cuenta.
+                </p>
+            </div>
+        </div>
+
+        <!-- Botón Volver -->
+        <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end">
+            <a asp-controller="Home" asp-action="Index" 
+               class="px-6 py-2.5 rounded-full bg-[#064e3b] text-white text-xs font-bold hover:bg-[#04382a] transition-all">
+                Volver al Inicio
+            </a>
+        </div>
+    </div>
+</div>
