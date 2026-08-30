@@ -1,39 +1,111 @@
+@model FinanzApp.Web.ViewModels.UserNavViewModel
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var avatarUrl = !string.IsNullOrEmpty(Model.ProfilePicture)
+        ? Model.ProfilePicture
+        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.FullName)}&background=04382a&color=fff";
+}
+
 <nav class="bg-[#064e3b] text-white px-6 py-3 shadow-md">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
-        
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-4">
+
         <!-- Logo -->
         <a asp-controller="Home" asp-action="Index" class="text-xl font-bold tracking-wide flex items-center gap-2">
             FinanzApp
         </a>
 
-        <!-- Enlaces centrales -->
-        <div class="flex items-center gap-6 text-sm font-medium">
-            <a asp-controller="Dashboard" asp-action="Index" class="hover:text-emerald-200 transition-colors">
-                Dashboard
-            </a>
-            <a asp-controller="History" asp-action="Index" class="hover:text-emerald-200 transition-colors">
-                Historial
-            </a>
-            <a asp-controller="Income" asp-action="Index" class="hover:text-emerald-200 transition-colors">
-                Ingresos
-            </a>
-            <a asp-controller="Expense" asp-action="Index" class="px-3 py-1 bg-emerald-700/60 rounded-full font-bold text-emerald-100 border border-emerald-500/30">
-                Gastos
-            </a>
-            <a asp-controller="Settings" asp-action="Index" class="hover:text-emerald-200 transition-colors">
-                Configuración
-            </a>
-        </div>
-
-        <!-- Usuario / Perfil -->
-        <div class="flex items-center gap-3">
-            <div class="text-right hidden sm:block">
-                <p class="text-xs font-semibold">Estudiante</p>
-                <p class="text-[10px] text-emerald-200">University Life</p>
+        @if (Model.IsAuthenticated)
+        {
+            <!-- Enlaces centrales -->
+            <div class="flex items-center gap-6 text-sm font-medium">
+                <a asp-controller="Dashboard" asp-action="Index"
+                   class="@(controller == "Dashboard" ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
+                    Dashboard
+                </a>
+                <a asp-controller="History" asp-action="Index"
+                   class="@(controller == "History" ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
+                    Historial
+                </a>
+                <a asp-controller="Income" asp-action="Index"
+                   class="@(controller == "Income" ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
+                    Ingresos
+                </a>
+                <a asp-controller="Expense" asp-action="Index"
+                   class="@(controller == "Expense" ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
+                    Gastos
+                </a>
             </div>
-            <img src="https://ui-avatars.com/api/?name=Estudiante+University&background=04382a&color=fff" 
-                 alt="Perfil" class="w-8 h-8 rounded-full border border-emerald-400" />
-        </div>
+
+            <!-- Usuario / Perfil con menú desplegable -->
+            <div class="relative">
+                <button type="button" id="profileMenuButton" data-profile-toggle
+                        aria-haspopup="true" aria-expanded="false"
+                        class="flex items-center gap-2 rounded-full px-2 py-1.5 hover:bg-emerald-700/50 transition-colors focus:outline-none">
+                    @if (!string.IsNullOrEmpty(Model.ProfilePicture))
+                    {
+                        <img src="@Model.ProfilePicture" alt="Foto de perfil de @Model.FullName" class="w-8 h-8 rounded-full border border-emerald-400" />
+                    }
+                    else
+                    {
+                        <img src="@avatarUrl" alt="Perfil de @Model.FullName" class="w-8 h-8 rounded-full border border-emerald-400" />
+                    }
+                    <span class="hidden sm:inline text-xs font-semibold">@Model.FullName</span>
+                    <span class="material-symbols-outlined text-base text-emerald-200">expand_more</span>
+                </button>
+
+                <div id="profileMenu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-white text-gray-800 shadow-lg border border-emerald-900/10 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-100">
+                        <p class="text-sm font-bold truncate text-emerald-950">@Model.FullName</p>
+                    </div>
+                    <a asp-controller="Settings" asp-action="Index"
+                       class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-emerald-50 transition-colors">
+                        <span class="material-symbols-outlined text-lg">settings</span> Ajustes
+                    </a>
+                    <form asp-controller="Auth" asp-action="Logout" method="post" class="block">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors">
+                            <span class="material-symbols-outlined text-lg">logout</span> Cerrar sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Botones de acceso -->
+            <div class="flex items-center gap-3 text-sm font-semibold">
+                <a asp-controller="Auth" asp-action="Login"
+                   class="px-4 py-2 text-emerald-100 border border-emerald-400/60 rounded-full hover:bg-emerald-700/40 transition-colors">
+                    Iniciar sesión
+                </a>
+                <a asp-controller="Auth" asp-action="Register"
+                   class="px-4 py-2 bg-emerald-50 text-emerald-900 rounded-full hover:bg-white transition-colors">
+                    Regístrate
+                </a>
+            </div>
+        }
 
     </div>
 </nav>
+
+<script>
+    (function () {
+        var toggle = document.querySelector('[data-profile-toggle]');
+        var menu = document.getElementById('profileMenu');
+        if (!toggle || !menu) return;
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var hidden = menu.classList.toggle('hidden');
+            toggle.setAttribute('aria-expanded', String(!hidden));
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    })();
+</script>

@@ -63,8 +63,8 @@
                             <span class="material-symbols-outlined text-xl">payments</span>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-slate-800 text-sm">@item.Title</h4>
-                            <p class="text-xs text-slate-400">@item.CategoryName • @item.Date.ToString("dd MMM, HH:mm")</p>
+                            <h4 class="font-semibold text-slate-800 text-sm">@(string.IsNullOrWhiteSpace(item.Note) ? item.Category : item.Note)</h4>
+                            <p class="text-xs text-slate-400">@item.Category • @item.Date.ToString("dd MMM, HH:mm")</p>
                         </div>
                     </div>
                     <div class="font-bold text-slate-800 text-sm">
