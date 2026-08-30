@@ -19,4 +19,6 @@ public interface IIncomeRepository
     Task<List<Income>> GetIncomesSinceAsync(string userId, DateTime fromDate);
 
     Task<decimal> GetTotalIncomesUntilAsync(string userId, DateTime untilDate);
+
+    Task SaveRecurringProgressAsync(ApplicationUser user);
 }

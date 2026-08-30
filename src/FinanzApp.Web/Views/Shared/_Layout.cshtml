@@ -75,7 +75,7 @@
     </style>
 </head>
 <body class="bg-surface min-h-screen flex flex-col font-body-md text-on-surface antialiased pt-16">
-    @await Html.PartialAsync("_TopNav")
+    @await Component.InvokeAsync("TopNav")
 
     <main role="main" class="flex-1 w-full max-w-7xl mx-auto px-gutter md:px-section-margin py-8 md:py-12 flex flex-col gap-8">
         @RenderBody()

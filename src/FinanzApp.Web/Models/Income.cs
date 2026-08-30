@@ -29,6 +29,8 @@ public class Income
 
     public DateTime? UpdatedAt { get; set; }
 
+    public bool IsRecurring { get; set; } = false;
+
     [ForeignKey(nameof(UserId))]
     public ApplicationUser User { get; set; } = null!;
 }

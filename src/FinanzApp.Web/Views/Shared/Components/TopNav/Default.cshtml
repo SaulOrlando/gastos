@@ -1,0 +1,109 @@
+@model FinanzApp.Web.ViewModels.UserNavViewModel
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var userName = Model.FullName;
+    var profilePicture = Model.ProfilePicture;
+    var avatarUrl = !string.IsNullOrEmpty(profilePicture)
+        ? profilePicture
+        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(userName)}&background=064e3b&color=fff";
+}
+
+<nav class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-gutter h-16 bg-primary shadow-md">
+    <div class="flex items-center gap-8">
+        <a asp-controller="Home" asp-action="Index"
+           class="font-headline-xl text-headline-xl font-bold text-on-primary hover:opacity-90 transition-opacity">
+            FinanzApp
+        </a>
+        @if (Model.IsAuthenticated)
+        {
+            <div class="hidden md:flex items-center gap-2">
+                <a asp-controller="Dashboard" asp-action="Index"
+                   class="@(controller == "Dashboard" ? "bg-secondary-container text-on-secondary-container" : "text-on-primary/80 hover:text-on-primary hover:bg-primary-container/20")
+                          rounded-full px-4 py-1 transition-all duration-200 font-label-md text-label-md font-bold">
+                    Dashboard
+                </a>
+                <a asp-controller="Goal" asp-action="Index"
+                   class="@(controller == "Goal" ? "bg-secondary-container text-on-secondary-container" : "text-on-primary/80 hover:text-on-primary hover:bg-primary-container/20")
+                          rounded-full px-4 py-1 transition-all duration-200 font-label-md text-label-md font-bold">
+                    Metas
+                </a>
+            </div>
+        }
+    </div>
+    <div class="flex items-center gap-4">
+        @if (Model.IsAuthenticated)
+        {
+            <div class="relative">
+                <button type="button" id="profileMenuButton" data-profile-toggle
+                        aria-haspopup="true" aria-expanded="false"
+                        class="flex items-center gap-3 rounded-full pl-1 pr-4 py-1 hover:bg-primary-container/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-fixed">
+                    <div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center border-2 border-primary-fixed overflow-hidden">
+                        @if (!string.IsNullOrEmpty(profilePicture))
+                        {
+                            <img src="@profilePicture" alt="Foto de perfil de @userName" class="w-full h-full object-cover" />
+                        }
+                        else
+                        {
+                            <span class="font-headline-lg text-on-secondary-container font-bold">
+                                @(userName.Length > 0 ? userName[0].ToString().ToUpper() : "U")
+                            </span>
+                        }
+                    </div>
+                    <div class="hidden md:flex flex-col items-start">
+                        <span class="font-label-bold text-label-bold text-on-primary">@userName</span>
+                    </div>
+                    <i class="bi bi-chevron-down text-on-primary/70 text-xs"></i>
+                </button>
+
+                <div id="profileMenu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-surface shadow-lg border border-outline-variant overflow-hidden">
+                    <div class="px-4 py-3 border-b border-outline-variant">
+                        <p class="font-label-bold text-label-bold text-on-surface truncate">@userName</p>
+                    </div>
+                    <a asp-controller="Settings" asp-action="Index"
+                       class="flex items-center gap-3 px-4 py-3 text-on-surface hover:bg-surface-container transition-colors font-label-md text-label-md font-bold">
+                        <i class="bi bi-gear"></i> Ajustes
+                    </a>
+                    <form asp-controller="Auth" asp-action="Logout" method="post" class="block">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                class="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-colors font-label-md text-label-md font-bold">
+                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <a asp-controller="Auth" asp-action="Login"
+               class="text-on-primary/80 hover:text-on-primary transition-colors font-label-md text-label-md">
+                Iniciar sesión
+            </a>
+            <a asp-controller="Auth" asp-action="Register"
+               class="bg-secondary-container hover:opacity-90 transition-opacity text-on-secondary-container font-bold px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-fixed">
+                Registrarse
+            </a>
+        }
+    </div>
+</nav>
+
+<script>
+    (function () {
+        var toggle = document.querySelector('[data-profile-toggle]');
+        var menu = document.getElementById('profileMenu');
+        if (!toggle || !menu) return;
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var hidden = menu.classList.toggle('hidden');
+            toggle.setAttribute('aria-expanded', String(!hidden));
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    })();
+</script>
