@@ -96,6 +96,7 @@ BEGIN
         [UserId]        NVARCHAR(128)   NOT NULL,
         [Name]          NVARCHAR(100)   NOT NULL,
         [TargetAmount]  DECIMAL(18,2)   NOT NULL,
+        [CategoryTag]   NVARCHAR(50)    NULL DEFAULT N'General',
         [Deadline]      DATETIME2       NOT NULL,
         [CreatedAt]     DATETIME2       NOT NULL DEFAULT GETDATE(),
         [IsCompleted]   BIT             NOT NULL DEFAULT 0,
