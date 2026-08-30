@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using FinanzApp.Web.Models;
+using FinanzApp.Web.Repositories;
 using FinanzApp.Web.Services;
 using FinanzApp.Web.ViewModels;
 
@@ -13,15 +14,18 @@ namespace FinanzApp.Web.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IRecurringIncomeService _recurringIncomeService;
+        private readonly ISavingsGoalRepository _savingsGoalRepository;
 
         public SettingsController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IRecurringIncomeService recurringIncomeService)
+            IRecurringIncomeService recurringIncomeService,
+            ISavingsGoalRepository savingsGoalRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _recurringIncomeService = recurringIncomeService;
+            _savingsGoalRepository = savingsGoalRepository;
         }
 
         [HttpGet]
@@ -45,6 +49,8 @@ namespace FinanzApp.Web.Controllers
                 MonthlyBudgetLimit = user.MonthlyBudget,
                 EnableNotifications = user.RemindersEnabled,
             };
+
+            model.GoalDeductions = await LoadGoalDeductionsAsync(user.Id, model);
 
             return View(model);
         }
@@ -81,6 +87,7 @@ namespace FinanzApp.Web.Controllers
 
             if (!ModelState.IsValid)
             {
+                model.GoalDeductions = await LoadGoalDeductionsAsync(user.Id, model);
                 return View("Index", model);
             }
 
@@ -103,6 +110,7 @@ namespace FinanzApp.Web.Controllers
                 && (user.DepositStartDate is null || user.DepositIntervalDays is null))
             {
                 ModelState.AddModelError(string.Empty, "Para el depósito personalizado indica el primer día y la cantidad de días.");
+                model.GoalDeductions = await LoadGoalDeductionsAsync(user.Id, model);
                 return View("Index", model);
             }
 
@@ -173,6 +181,23 @@ namespace FinanzApp.Web.Controllers
             return $"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}";
         }
 
+        private async Task<List<GoalDeductionViewModel>> LoadGoalDeductionsAsync(string userId, SettingsViewModel model)
+        {
+            var goals = await _savingsGoalRepository.GetAllByUserIdAsync(userId);
+
+            return goals
+                .Where(g => !g.IsCompleted)
+                .OrderBy(g => g.CreatedAt)
+                .Select(g => new GoalDeductionViewModel
+                {
+                    GoalId = g.Id,
+                    Name = g.Name,
+                    CategoryTag = string.IsNullOrWhiteSpace(g.CategoryTag) ? "General" : g.CategoryTag,
+                    MonthlyContribution = g.MonthlyContribution
+                })
+                .ToList();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(SettingsViewModel model)
@@ -183,6 +208,7 @@ namespace FinanzApp.Web.Controllers
             if (string.IsNullOrEmpty(model.CurrentPassword) || string.IsNullOrEmpty(model.NewPassword))
             {
                 ModelState.AddModelError(string.Empty, "Debes completar los campos de contraseña.");
+                model.GoalDeductions = await LoadGoalDeductionsAsync(user.Id, model);
                 return View("Index", model);
             }
 
@@ -198,6 +224,7 @@ namespace FinanzApp.Web.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
+            model.GoalDeductions = await LoadGoalDeductionsAsync(user.Id, model);
             return View("Index", model);
         }
     }

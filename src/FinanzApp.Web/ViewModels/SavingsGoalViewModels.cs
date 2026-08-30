@@ -28,6 +28,8 @@ public class SavingsGoalItemViewModel
 
 public class CreateGoalViewModel
 {
+    public int Id { get; set; }
+
     [Required(ErrorMessage = "Ponle un nombre a tu meta.")]
     [StringLength(100, ErrorMessage = "El nombre no puede pasar de 100 caracteres.")]
     [Display(Name = "Nombre de la meta")]
@@ -45,6 +47,12 @@ public class CreateGoalViewModel
     [StringLength(50)]
     [Display(Name = "Categoría")]
     public string CategoryTag { get; set; } = "General";
+
+    [Range(0, double.MaxValue, ErrorMessage = "El monto a descontar no puede ser negativo.")]
+    [Display(Name = "Descontar de mi sueldo")]
+    public decimal MonthlyContribution { get; set; }
+
+    public decimal SalaryAmount { get; set; }
 
     public string CurrencySymbol { get; set; } = "$";
 }

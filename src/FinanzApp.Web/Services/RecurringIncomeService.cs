@@ -8,10 +8,14 @@ public class RecurringIncomeService : IRecurringIncomeService
     private const string RecurringCategory = "Sueldo";
 
     private readonly IIncomeRepository _incomeRepository;
+    private readonly ISavingsGoalRepository _savingsGoalRepository;
 
-    public RecurringIncomeService(IIncomeRepository incomeRepository)
+    public RecurringIncomeService(
+        IIncomeRepository incomeRepository,
+        ISavingsGoalRepository savingsGoalRepository)
     {
         _incomeRepository = incomeRepository;
+        _savingsGoalRepository = savingsGoalRepository;
     }
 
     public async Task ProcessAsync(ApplicationUser user)
@@ -43,6 +47,13 @@ public class RecurringIncomeService : IRecurringIncomeService
             return;
         }
 
+        var goals = await _savingsGoalRepository.GetAllByUserIdAsync(user.Id);
+        var activeGoals = goals
+            .Where(g => !g.IsCompleted && g.MonthlyContribution > 0m)
+            .ToList();
+        var totalContribution = activeGoals.Sum(g => g.MonthlyContribution);
+        var netAmount = Math.Max(0m, amount - totalContribution);
+
         foreach (var due in dueDates)
         {
             var existing = await GetRecurringIncomeOnAsync(user.Id, due);
@@ -51,15 +62,28 @@ public class RecurringIncomeService : IRecurringIncomeService
             var income = new Income
             {
                 UserId = user.Id,
-                Amount = amount,
+                Amount = netAmount,
                 Category = RecurringCategory,
                 Date = due,
-                Note = "Depósito automático",
+                Note = totalContribution > 0m
+                    ? $"Depósito automático (se apartaron {totalContribution:0.00} para tus metas)"
+                    : "Depósito automático",
                 IsRecurring = true,
                 CreatedAt = DateTime.UtcNow
             };
 
             await _incomeRepository.AddAsync(income);
+
+            foreach (var goal in activeGoals)
+            {
+                await _savingsGoalRepository.AddEntryAsync(new SavingsEntry
+                {
+                    GoalId = goal.Id,
+                    Amount = goal.MonthlyContribution,
+                    Date = due,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
         }
 
         user.LastRecurringIncomeAt = today;

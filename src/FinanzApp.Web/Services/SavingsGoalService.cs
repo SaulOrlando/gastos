@@ -33,6 +33,7 @@ public class SavingsGoalService : ISavingsGoalService
             TargetAmount = model.TargetAmount,
             Deadline = model.Deadline,
             CategoryTag = model.CategoryTag,
+            MonthlyContribution = model.MonthlyContribution,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -71,6 +72,51 @@ public class SavingsGoalService : ISavingsGoalService
             await _savingsGoalRepository.UpdateAsync(goal);
         }
 
+        return true;
+    }
+
+    public async Task<CreateGoalViewModel?> GetGoalForEditAsync(int id, string userId, string currencySymbol)
+    {
+        var goal = await _savingsGoalRepository.GetByIdAsync(id, userId);
+
+        if (goal is null)
+        {
+            return null;
+        }
+
+        return new CreateGoalViewModel
+        {
+            Id = goal.Id,
+            Name = goal.Name,
+            TargetAmount = goal.TargetAmount,
+            Deadline = goal.Deadline,
+            CategoryTag = string.IsNullOrWhiteSpace(goal.CategoryTag) ? "General" : goal.CategoryTag,
+            MonthlyContribution = goal.MonthlyContribution,
+            CurrencySymbol = currencySymbol
+        };
+    }
+
+    public async Task<bool> UpdateGoalAsync(CreateGoalViewModel model, string userId)
+    {
+        if (model.Id <= 0)
+        {
+            return false;
+        }
+
+        var goal = await _savingsGoalRepository.GetByIdAsync(model.Id, userId);
+
+        if (goal is null || goal.IsCompleted)
+        {
+            return false;
+        }
+
+        goal.Name = model.Name?.Trim() ?? string.Empty;
+        goal.TargetAmount = model.TargetAmount;
+        goal.Deadline = model.Deadline;
+        goal.CategoryTag = model.CategoryTag;
+        goal.MonthlyContribution = model.MonthlyContribution;
+
+        await _savingsGoalRepository.UpdateAsync(goal);
         return true;
     }
 

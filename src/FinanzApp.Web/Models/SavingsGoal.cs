@@ -23,6 +23,10 @@ public class SavingsGoal
     [StringLength(50)]
     public string CategoryTag { get; set; } = "General";
 
+    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue)]
+    public decimal MonthlyContribution { get; set; }
+
     public DateTime Deadline { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

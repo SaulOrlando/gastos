@@ -57,6 +57,9 @@ namespace FinanzApp.Web.ViewModels
         [Range(1, 31, ErrorMessage = "Debe ser entre 1 y 31 días")]
         public int? DepositIntervalDays { get; set; }
 
+        // --- Descuentos por meta (desde el sueldo) ---
+        public List<GoalDeductionViewModel> GoalDeductions { get; set; } = new();
+
         // --- Preferencias Financieras ---
         [Required]
         [Display(Name = "Moneda Principal")]
@@ -68,5 +71,17 @@ namespace FinanzApp.Web.ViewModels
 
         [Display(Name = "Recibir Alertas de Gastos")]
         public bool EnableNotifications { get; set; } = true;
+    }
+
+    public class GoalDeductionViewModel
+    {
+        public int GoalId { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public string CategoryTag { get; set; } = "General";
+
+        [Range(0, double.MaxValue, ErrorMessage = "El monto a descontar no puede ser negativo.")]
+        public decimal MonthlyContribution { get; set; }
     }
 }

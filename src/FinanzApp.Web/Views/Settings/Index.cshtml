@@ -95,7 +95,8 @@
                         <input asp-for="SalaryAmount" type="number" step="0.01" placeholder="4500"
                                class="w-full rounded-xl border border-gray-200 py-3.5 pl-9 pr-4 text-lg font-semibold text-gray-700 focus:outline-none focus:border-[#064e3b]" />
                     </div>
-                    <p class="text-xs text-gray-400 mt-1">Ingresa el monto neto que recibes. Si lo dejas en $0 no se sumará ningún ingreso automático.</p>
+                    <p class="text-xs text-gray-400 mt-1">Ingresa el monto neto que recibes. Si lo dejas en $0 no se sumará ningún ingreso automático.
+                        De cada sueldo se descontará lo que indiques en tus metas (ver abajo).</p>
                 </div>
 
                 <!-- Frecuencia de Depósito -->
@@ -156,6 +157,44 @@
                             <p class="text-xs text-gray-400 mt-1">Máximo 31 días. Ejemplo: primer día el 1 de noviembre y 7 días — se sumará automáticamente el 8.</p>
                         </div>
                     </div>
+                </div>
+
+                <!-- Descuentos por meta -->
+                <div>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">DESCUENTOS PARA MIS METAS</h3>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1 mb-3">
+                        De cada sueldo que recibas se descontará automáticamente lo que indiques en cada meta y se abonará a la misma.
+                        El ingreso registrado será tu sueldo menos el total descontado.
+                    </p>
+
+                    @if (Model.GoalDeductions.Count == 0)
+                    {
+                        <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center">
+                            <p class="text-sm text-gray-500">
+                                Aún no tienes metas activas. Crea una meta y define cuánto descontar de tu sueldo en la vista Metas.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="space-y-3">
+                            @foreach (var deduction in Model.GoalDeductions)
+                            {
+                                <div class="flex items-center gap-3 rounded-xl border border-gray-200 p-3">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold text-gray-800">@deduction.Name</p>
+                                        <span class="text-xs text-gray-400">@deduction.CategoryTag</span>
+                                    </div>
+                                    <span class="text-sm font-bold text-[#064e3b]">$ @deduction.MonthlyContribution.ToString("N2")</span>
+                                </div>
+                            }
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">
+                            El monto que se descuenta por meta se edita desde la vista Metas.
+                        </p>
+                    }
                 </div>
             </div>
 

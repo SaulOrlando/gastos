@@ -83,20 +83,26 @@
                         <div class="h-full @progressColor rounded-full transition-all duration-500"
                              style="width: @goal.ProgressPercentage%;"></div>
                     </div>
-                    <div class="mt-2 flex items-center justify-between">
+                    <div class="mt-2 flex items-center justify-between gap-2">
                         <span class="text-xs font-semibold @(isLowProgress ? "text-orange-600" : "text-[#14532d]")">@goal.ProgressPercentage%</span>
-                        <form asp-controller="Goal" asp-action="AddFunds" method="post" class="flex items-center gap-2" onsubmit="return true;">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="goalId" value="@goal.Id" />
-                            <label for="amount-@goal.Id" class="sr-only">Monto a abonar a @goal.Name</label>
-                            <input id="amount-@goal.Id" type="number" name="amount" min="0.01" step="0.01"
-                                   placeholder="Abonar"
-                                   class="w-24 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#14532d]/40" required />
-                            <button type="submit"
-                                    class="bg-[#14532d] hover:bg-opacity-90 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-opacity">
-                                + Abonar
-                            </button>
-                        </form>
+                        <div class="flex items-center gap-2">
+                            <a asp-controller="Goal" asp-action="Edit" asp-route-id="@goal.Id"
+                               class="text-sm font-semibold text-[#14532d] hover:underline" title="Editar @goal.Name">
+                                Editar
+                            </a>
+                            <form asp-controller="Goal" asp-action="AddFunds" method="post" class="flex items-center gap-2" onsubmit="return true;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="goalId" value="@goal.Id" />
+                                <label for="amount-@goal.Id" class="sr-only">Monto a abonar a @goal.Name</label>
+                                <input id="amount-@goal.Id" type="number" name="amount" min="0.01" step="0.01"
+                                       placeholder="Abonar"
+                                       class="w-24 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#14532d]/40" required />
+                                <button type="submit"
+                                        class="bg-[#14532d] hover:bg-opacity-90 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-opacity">
+                                    + Abonar
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </article>
