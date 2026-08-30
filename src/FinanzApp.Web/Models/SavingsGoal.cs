@@ -20,6 +20,9 @@ public class SavingsGoal
     [Range(0.01, double.MaxValue, ErrorMessage = "El monto objetivo debe ser mayor a 0.")]
     public decimal TargetAmount { get; set; }
 
+    [StringLength(50)]
+    public string CategoryTag { get; set; } = "General";
+
     public DateTime Deadline { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

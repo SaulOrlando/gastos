@@ -1,0 +1,70 @@
+@model FinanzApp.Web.ViewModels.CreateGoalViewModel
+@{
+    ViewData["Title"] = "Nueva Meta de Ahorro";
+}
+
+<div class="max-w-xl mx-auto">
+    <a asp-controller="Goal" asp-action="Index" class="inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:text-accent transition-colors">
+        <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+        Volver a mis metas
+    </a>
+
+    <div class="mt-4 bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface">Crear nueva meta</h1>
+        <p class="mt-2 font-body-md text-body-md text-on-surface-variant">
+            Define a qué quieres llegar y con cuánto empiezas a ahorrar.
+        </p>
+
+        <form asp-controller="Goal" asp-action="Create" method="post" class="mt-8 space-y-5" novalidate aria-label="Formulario para crear una meta de ahorro">
+            <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm bg-red-50 border border-red-200 rounded-lg p-3" role="alert"></div>
+
+            <div>
+                <label asp-for="Name" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
+                <input asp-for="Name"
+                       class="w-full rounded-xl border border-slate-300 px-4 py-3 text-secondary-dark placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                       placeholder="Ej. Viaje a Cancún" autocomplete="off" />
+                <span asp-validation-for="Name" class="text-red-500 text-sm mt-1 block"></span>
+            </div>
+
+            <div>
+                <label asp-for="TargetAmount" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-dark font-semibold" aria-hidden="true">@Model.CurrencySymbol</span>
+                    <input asp-for="TargetAmount" type="number" min="0.01" step="0.01"
+                           class="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-3 text-secondary-dark placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                           placeholder="0.00" inputmode="decimal" />
+                </div>
+                <span asp-validation-for="TargetAmount" class="text-red-500 text-sm mt-1 block"></span>
+            </div>
+
+            <div>
+                <label asp-for="Deadline" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
+                <input asp-for="Deadline" type="date"
+                       class="w-full rounded-xl border border-slate-300 px-4 py-3 text-secondary-dark focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent" />
+                <span asp-validation-for="Deadline" class="text-red-500 text-sm mt-1 block"></span>
+            </div>
+
+            <div>
+                <label asp-for="CategoryTag" class="block text-sm font-semibold text-secondary-dark mb-1"></label>
+                <select asp-for="CategoryTag"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-secondary-dark bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
+                    @foreach (var category in (IEnumerable<string>?)ViewBag.Categories ?? Array.Empty<string>())
+                    {
+                        <option value="@category">@category</option>
+                    }
+                </select>
+                <span asp-validation-for="CategoryTag" class="text-red-500 text-sm mt-1 block"></span>
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-primary hover:bg-primary-dark transition-colors text-white font-bold text-lg py-3.5 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary-light/40">
+                Crear meta
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+}

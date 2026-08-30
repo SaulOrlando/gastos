@@ -37,6 +37,10 @@
                    class="@(controller == "Expense" && !isAddingExpense ? "px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-full font-bold" : "hover:text-emerald-200 transition-colors")">
                     Gastos
                 </a>
+                <a asp-controller="Goal" asp-action="Index"
+                   class="@(controller == "Goal" ? "bg-[#10b981] text-white rounded-full px-4 py-1.5" : "hover:text-emerald-200 transition-colors")">
+                    Metas
+                </a>
             </div>
 
             <!-- Usuario / Perfil con menú desplegable -->
