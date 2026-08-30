@@ -231,7 +231,7 @@ public class IncomeController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateCategory(string name)
+    public async Task<IActionResult> CreateCategory(string name, string color)
     {
         var user = await GetCurrentUserAsync();
 
@@ -240,7 +240,7 @@ public class IncomeController : Controller
             return Json(new { success = false, message = "Debes iniciar sesión." });
         }
 
-        var result = await _categoryService.CreateAsync(name, user.Id);
+        var result = await _categoryService.CreateAsync(name, user.Id, color);
 
         if (!result.Success)
         {
@@ -251,13 +251,14 @@ public class IncomeController : Controller
         {
             success = true,
             id = result.Category!.Id,
-            name = result.Category.Name
+            name = result.Category.Name,
+            color = result.Category.Color
         });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateCategory(int id, string name)
+    public async Task<IActionResult> UpdateCategory(int id, string name, string color)
     {
         var user = await GetCurrentUserAsync();
 
@@ -266,7 +267,7 @@ public class IncomeController : Controller
             return Json(new { success = false, message = "Debes iniciar sesión." });
         }
 
-        var result = await _categoryService.UpdateAsync(id, name, user.Id);
+        var result = await _categoryService.UpdateAsync(id, name, user.Id, color);
 
         if (!result.Success)
         {
@@ -277,7 +278,8 @@ public class IncomeController : Controller
         {
             success = true,
             id = result.Category!.Id,
-            name = result.Category.Name
+            name = result.Category.Name,
+            color = result.Category.Color
         });
     }
 

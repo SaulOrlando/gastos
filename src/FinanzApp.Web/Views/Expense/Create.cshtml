@@ -63,6 +63,12 @@
                                         <label for="newCategoryName" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
                                             Crear categoría
                                         </label>
+
+                                        <div class="mb-2">
+                                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Color</label>
+                                            <div id="newCatColors" class="flex flex-wrap gap-2"></div>
+                                        </div>
+
                                         <div class="flex items-center gap-2">
                                             <input type="text" id="newCategoryName" maxlength="50" placeholder="Ej. Mascotas, Ropa..."
                                                    class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-[#064e3b]" />
@@ -79,9 +85,11 @@
                                     <div id="customCatList" class="space-y-1.5 max-h-56 overflow-y-auto">
                                         @foreach (var ucat in customCats)
                                         {
-                                            <div class="cat-row flex items-center justify-between gap-2" data-cat-id="@ucat.Id" data-cat-name="@ucat.Name">
+                                            <div class="cat-row flex items-center justify-between gap-2" data-cat-id="@ucat.Id" data-cat-name="@ucat.Name" data-cat-color="@ucat.Color">
                                                 <div class="min-w-0 flex-1">
-                                                    <span class="cat-name block truncate text-sm font-medium text-gray-700">@ucat.Name</span>
+                                                    <span class="cat-name block truncate text-sm font-medium text-gray-700">
+                                                        <span class="cat-dot inline-block w-2.5 h-2.5 rounded-full align-middle mr-1.5" style="background-color: @ucat.Color;"></span>@ucat.Name
+                                                    </span>
                                                     <div class="cat-edit hidden items-center gap-1.5">
                                                         <input class="edit-name w-full min-w-0 rounded-lg border border-gray-200 px-2 py-1 text-sm focus:outline-none focus:border-[#064e3b]"
                                                                value="@ucat.Name" maxlength="50" />
@@ -89,6 +97,10 @@
                                                                 onclick="saveEditCustomCat(this)">Guardar</button>
                                                         <button type="button" class="shrink-0 text-xs text-gray-400 hover:underline"
                                                                 onclick="cancelEditCustomCat(this)">Cancelar</button>
+                                                    </div>
+                                                    <div class="cat-color hidden mt-1.5">
+                                                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Color</label>
+                                                        <div class="cat-color-options flex flex-wrap gap-2"></div>
                                                     </div>
                                                 </div>
                                                 <div class="cat-actions flex items-center gap-2 shrink-0">
@@ -160,6 +172,56 @@
         const selectedInput = document.getElementById('selectedCategory');
         const selectedStyle = ['border-[#064e3b]', 'bg-emerald-50', 'text-[#064e3b]'];
         const normalStyle = ['border-gray-200', 'bg-white', 'text-gray-700'];
+
+        const PALETTE = ['#21C3D6', '#ba1a1a', '#1565C0', '#F57C00', '#006d3d', '#9C27B0', '#D81B60', '#5A5A5A'];
+
+        function buildColorSwatches(container, selectedColor, onChange) {
+            const currentColor = selectedColor || '#21C3D6';
+            let selecteds = new Set(container.querySelectorAll('button.selected'));
+
+            PALETTE.forEach(function (color) {
+                const sw = document.createElement('button');
+                sw.type = 'button';
+                sw.className = 'w-7 h-7 rounded-full border-2 transition-all focus:outline-none';
+                sw.style.backgroundColor = color;
+                sw.setAttribute('aria-label', 'Color ' + color);
+                sw.dataset.color = color;
+                if (color.toLowerCase() === currentColor.toLowerCase()) {
+                    sw.classList.add('selected', 'border-gray-800', 'scale-110');
+                } else {
+                    sw.classList.add('border-white');
+                }
+                sw.addEventListener('click', function () {
+                    container.querySelectorAll('button').forEach(function (b) {
+                        b.classList.remove('selected', 'border-gray-800', 'scale-110');
+                        b.classList.add('border-white');
+                    });
+                    sw.classList.add('selected', 'border-gray-800', 'scale-110');
+                    sw.classList.remove('border-white');
+                    onChange(color);
+                });
+                container.appendChild(sw);
+            });
+        }
+
+        function getSelectedColor(container) {
+            const sel = container.querySelector('button.selected');
+            return sel ? sel.dataset.color : '#21C3D6';
+        }
+
+        function initColorPickers() {
+            document.querySelectorAll('.cat-color').forEach(function (box) {
+                const row = box.closest('.cat-row');
+                buildColorSwatches(row.querySelector('.cat-color-options'), row.dataset.catColor, function (color) {
+                    row.dataset.catColor = color;
+                    row.querySelector('.cat-dot').style.backgroundColor = color;
+                });
+            });
+            const newCatColors = document.getElementById('newCatColors');
+            if (newCatColors) {
+                buildColorSwatches(newCatColors, '#21C3D6', function () {});
+            }
+        }
 
         function applyStyle(el, style) {
             el.classList.remove(...selectedStyle, ...normalStyle);
@@ -233,6 +295,15 @@
             const editRow = row.querySelector('.cat-edit');
             editRow.classList.remove('hidden');
             editRow.classList.add('flex');
+            const colorBox = row.querySelector('.cat-color');
+            colorBox.classList.remove('hidden');
+            colorBox.classList.add('flex');
+            if (!row.querySelector('.cat-color-options button')) {
+                buildColorSwatches(row.querySelector('.cat-color-options'), row.dataset.catColor, function (color) {
+                    row.dataset.catColor = color;
+                    row.querySelector('.cat-dot').style.backgroundColor = color;
+                });
+            }
             editRow.querySelector('.edit-name').focus();
         }
 
@@ -243,6 +314,9 @@
             const editRow = row.querySelector('.cat-edit');
             editRow.classList.add('hidden');
             editRow.classList.remove('flex');
+            const colorBox = row.querySelector('.cat-color');
+            colorBox.classList.add('hidden');
+            colorBox.classList.remove('flex');
         }
 
         async function saveEditCustomCat(btn) {
@@ -261,6 +335,7 @@
             const form = new FormData();
             form.append('id', row.dataset.catId);
             form.append('name', newName);
+            form.append('color', row.dataset.catColor || '#21C3D6');
             form.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
 
             try {
@@ -273,7 +348,9 @@
                 }
 
                 row.dataset.catName = data.name;
-                row.querySelector('.cat-name').textContent = data.name;
+                row.dataset.catColor = data.color;
+                row.querySelector('.cat-name').innerHTML =
+                    '<span class="cat-dot inline-block w-2.5 h-2.5 rounded-full align-middle mr-1.5" style="background-color: ' + data.color + ';"></span>' + data.name;
                 input.value = data.name;
 
                 if (selectedInput.value.toLowerCase() === oldName.toLowerCase()) {
@@ -316,18 +393,25 @@
             }
         }
 
-        function buildCatRow(id, name) {
+        function buildCatRow(id, name, color) {
             const row = document.createElement('div');
             row.className = 'cat-row flex items-center justify-between gap-2';
             row.dataset.catId = id;
             row.dataset.catName = name;
+            row.dataset.catColor = color || '#21C3D6';
             row.innerHTML =
                 '<div class="min-w-0 flex-1">' +
-                    '<span class="cat-name block truncate text-sm font-medium text-gray-700"></span>' +
+                    '<span class="cat-name block truncate text-sm font-medium text-gray-700">' +
+                        '<span class="cat-dot inline-block w-2.5 h-2.5 rounded-full align-middle mr-1.5" style="background-color: ' + (color || '#21C3D6') + ';"></span>' + name +
+                    '</span>' +
                     '<div class="cat-edit hidden items-center gap-1.5">' +
                         '<input class="edit-name w-full min-w-0 rounded-lg border border-gray-200 px-2 py-1 text-sm focus:outline-none focus:border-[#064e3b]" maxlength="50" />' +
                         '<button type="button" class="shrink-0 text-xs font-bold text-[#064e3b] hover:underline">Guardar</button>' +
                         '<button type="button" class="shrink-0 text-xs text-gray-400 hover:underline">Cancelar</button>' +
+                    '</div>' +
+                    '<div class="cat-color hidden mt-1.5">' +
+                        '<label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Color</label>' +
+                        '<div class="cat-color-options flex flex-wrap gap-2"></div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="cat-actions flex items-center gap-2 shrink-0">' +
@@ -335,8 +419,14 @@
                     '<button type="button" class="text-xs font-semibold text-gray-500 hover:underline">Editar</button>' +
                     '<button type="button" class="text-xs font-semibold text-red-500 hover:underline">Eliminar</button>' +
                 '</div>';
-            row.querySelector('.cat-name').textContent = name;
-            row.querySelector('.edit-name').value = name;
+            row.querySelector('.cat-name').innerHTML =
+                '<span class="cat-dot inline-block w-2.5 h-2.5 rounded-full align-middle mr-1.5" style="background-color: ' + (color || '#21C3D6') + ';"></span>' + name;
+            const editName = row.querySelector('.edit-name');
+            editName.value = name;
+            buildColorSwatches(row.querySelector('.cat-color-options'), color, function (c) {
+                row.dataset.catColor = c;
+                row.querySelector('.cat-dot').style.backgroundColor = c;
+            });
             row.querySelector('.cat-actions button:nth-child(1)').onclick = function () { useCustomCat(this); };
             row.querySelector('.cat-actions button:nth-child(2)').onclick = function () { editCustomCat(this); };
             row.querySelector('.cat-actions button:nth-child(3)').onclick = function () { deleteCustomCat(this); };
@@ -347,6 +437,7 @@
             const input = document.getElementById('newCategoryName');
             const name = input.value.trim();
             const errorEl = document.getElementById('newCategoryError');
+            const color = getSelectedColor(document.getElementById('newCatColors'));
 
             if (!name) {
                 errorEl.textContent = 'Escribe un nombre para la categoría.';
@@ -356,6 +447,7 @@
 
             const form = new FormData();
             form.append('name', name);
+            form.append('color', color);
             form.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
 
             try {
@@ -368,7 +460,7 @@
                 }
 
                 document.getElementById('noCustomCats').classList.add('hidden');
-                document.getElementById('customCatList').appendChild(buildCatRow(data.id, data.name));
+                document.getElementById('customCatList').appendChild(buildCatRow(data.id, data.name, data.color));
                 input.value = '';
                 errorEl.classList.add('hidden');
                 markCustomSelected(data.name, data.name);
@@ -378,5 +470,7 @@
                 errorEl.classList.remove('hidden');
             }
         }
+
+        initColorPickers();
     </script>
 }

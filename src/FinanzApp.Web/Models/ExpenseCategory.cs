@@ -17,6 +17,9 @@ public class ExpenseCategory
     [StringLength(100)]
     public string Icon { get; set; } = "bi-tag";
 
+    [StringLength(7)]
+    public string Color { get; set; } = "#21C3D6";
+
     public bool IsSystem { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -62,6 +62,19 @@ public class IncomeRepository : IIncomeRepository
             .ToListAsync();
     }
 
+    public async Task<Dictionary<string, decimal>> GetTotalIncomesByCategoryAsync(
+        string userId, int year, int month)
+    {
+        return await _context.Incomes
+            .AsNoTracking()
+            .Where(i => i.UserId == userId
+                && i.Date.Year == year
+                && i.Date.Month == month)
+            .GroupBy(i => i.Category)
+            .Select(g => new { Category = g.Key, Total = g.Sum(x => x.Amount) })
+            .ToDictionaryAsync(x => x.Category, x => x.Total);
+    }
+
     public Task<List<Income>> GetIncomesSinceAsync(string userId, DateTime fromDate)
     {
         return _context.Incomes

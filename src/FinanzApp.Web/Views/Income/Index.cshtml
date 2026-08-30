@@ -9,11 +9,13 @@
 
         return c switch
         {
-            "sueldo" or "salario" or "nomina" or "nómina" or "pago" or "mesada" or "quincena" => ("work", "#0b5d34"),
-            "beca" or "becas" or "beca universitaria" => ("school", "#9C27B0"),
-            "venta" or "ventas" or "negocio" or "negocios" or "clases" => ("storefront", "#FF9800"),
-            "bono" or "bonus" or "reembolso" or "devolucion" or "devolución" => ("redeem", "#006d3d"),
-            _ => ("payments", "#707a70")
+            "renta" or "alquiler" or "arriendo" or "casa" or "mensualidad" or "colegiatura" => ("home", "#ba1a1a"),
+            "transporte" or "bus" or "camión" or "camion" or "metro" or "uber" or "combustible" or "gasolina" => ("directions_bus", "#1565C0"),
+            "comida" or "comestibles" or "super" or "supermercado" or "restaurante" or "almuerzo" => ("restaurant", "#F57C00"),
+            "libros" or "libro" or "materiales" or "papeleria" or "papelería" or "uniformes" or "uniforme" => ("menu_book", "#006d3d"),
+            "entretenimiento" or "ocio" or "cine" or "juegos" or "suscripcion" or "suscripción" => ("sports_esports", "#9C27B0"),
+            "salud" or "medicinas" or "medicina" or "doctor" or "farmacia" => ("health_and_safety", "#D81B60"),
+            _ => ("payments", "#ba1a1a")
         };
     }
 
@@ -108,7 +110,7 @@
                 var visual = CategoryVisual(cat.Name);
                 <button type="button" data-category-filter="@cat.Name" aria-pressed="false"
                         class="bg-surface-container hover:bg-surface-container-high text-on-surface rounded-full px-4 py-2 flex items-center gap-2 font-label-md text-label-md border border-outline-variant transition-colors">
-                    <span class="material-symbols-outlined text-sm" style="color: @visual.hex;">@visual.icon</span> @cat.Name
+                    <span class="material-symbols-outlined text-sm" style="color: @cat.Color;">@visual.icon</span> @cat.Name
                 </button>
             }
         </div>
@@ -128,7 +130,7 @@
                          data-search="@(item.Note + " " + item.Category)"
                          class="flex items-center justify-between p-4 hover:bg-surface rounded-xl transition-colors group border border-transparent hover:border-surface-variant">
                         <div class="flex items-center gap-4 min-w-0">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background: color-mix(in srgb, @visual.hex 12%, transparent); color: @visual.hex;">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background: color-mix(in srgb, @item.Color 12%, transparent); color: @item.Color;">
                                 <span class="material-symbols-outlined">@visual.icon</span>
                             </div>
                             <div class="min-w-0">

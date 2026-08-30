@@ -23,13 +23,24 @@ public class CategoryService : ICategoryService
         {
             Id = c.Id,
             Name = c.Name,
+            Color = NormalizeColor(c.Color),
             IsSystem = c.UserId == null
         }).ToList();
     }
 
-    public async Task<CreateCategoryResult> CreateAsync(string name, string userId)
+    public async Task<Dictionary<string, string>> GetColorsByNamesAsync(string userId)
+    {
+        var categories = await _categoryRepository.GetAllForUserAsync(userId);
+
+        return categories
+            .GroupBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => NormalizeColor(g.First().Color));
+    }
+
+    public async Task<CreateCategoryResult> CreateAsync(string name, string userId, string color = "#21C3D6")
     {
         var trimmedName = name?.Trim() ?? string.Empty;
+        var normalizedColor = NormalizeColor(color);
 
         var validation = ValidateName(trimmedName);
         if (validation is not null)
@@ -46,6 +57,7 @@ public class CategoryService : ICategoryService
         {
             UserId = userId,
             Name = trimmedName,
+            Color = normalizedColor,
             IsSystem = false,
             CreatedAt = DateTime.UtcNow
         };
@@ -59,14 +71,16 @@ public class CategoryService : ICategoryService
             {
                 Id = category.Id,
                 Name = category.Name,
+                Color = category.Color,
                 IsSystem = false
             }
         };
     }
 
-    public async Task<CreateCategoryResult> UpdateAsync(int id, string name, string userId)
+    public async Task<CreateCategoryResult> UpdateAsync(int id, string name, string userId, string color = "#21C3D6")
     {
         var trimmedName = name?.Trim() ?? string.Empty;
+        var normalizedColor = NormalizeColor(color);
 
         var validation = ValidateName(trimmedName);
         if (validation is not null)
@@ -87,6 +101,7 @@ public class CategoryService : ICategoryService
         }
 
         category.Name = trimmedName;
+        category.Color = normalizedColor;
         await _categoryRepository.UpdateAsync(category);
 
         return new CreateCategoryResult
@@ -96,6 +111,7 @@ public class CategoryService : ICategoryService
             {
                 Id = category.Id,
                 Name = category.Name,
+                Color = category.Color,
                 IsSystem = false
             }
         };
@@ -132,4 +148,22 @@ public class CategoryService : ICategoryService
 
     private static CreateCategoryResult Error(string message) =>
         new() { Success = false, Error = message };
+
+    private static string NormalizeColor(string color)
+    {
+        color = (color ?? string.Empty).Trim();
+
+        if (color.Length == 6)
+        {
+            color = "#" + color;
+        }
+
+        if (color.Length == 7 && color[0] == '#'
+            && color.Skip(1).All(c => Uri.IsHexDigit(c)))
+        {
+            return color;
+        }
+
+        return "#21C3D6";
+    }
 }

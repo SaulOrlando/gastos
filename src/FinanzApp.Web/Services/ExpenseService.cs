@@ -8,13 +8,16 @@ public class ExpenseService : IExpenseService
 {
     private readonly IExpenseRepository _expenseRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly ICategoryService _categoryService;
 
     public ExpenseService(
         IExpenseRepository expenseRepository,
-        ICategoryRepository categoryRepository)
+        ICategoryRepository categoryRepository,
+        ICategoryService categoryService)
     {
         _expenseRepository = expenseRepository;
         _categoryRepository = categoryRepository;
+        _categoryService = categoryService;
     }
 
     public async Task<List<ExpenseListItemViewModel>> GetExpensesForMonthAsync(string userId, int year, int month, int? limit = null)
@@ -26,18 +29,27 @@ public class ExpenseService : IExpenseService
             expenses = expenses.OrderByDescending(e => e.Date).Take(limit.Value).ToList();
         }
 
-        return MapToListItem(expenses);
+        return await MapToListItemAsync(expenses, userId);
     }
 
-    private static List<ExpenseListItemViewModel> MapToListItem(IEnumerable<Expense> expenses)
+    public async Task<List<ExpenseListItemViewModel>> GetAllExpensesAsync(string userId)
     {
+        var expenses = await _expenseRepository.GetAllByUserIdAsync(userId);
+        return await MapToListItemAsync(expenses, userId);
+    }
+
+    private async Task<List<ExpenseListItemViewModel>> MapToListItemAsync(IEnumerable<Expense> expenses, string userId)
+    {
+        var colors = await _categoryService.GetColorsByNamesAsync(userId);
+
         return expenses.Select(e => new ExpenseListItemViewModel
         {
             Id = e.Id,
             Amount = e.Amount,
             Category = e.Category,
             Date = e.Date,
-            Note = e.Note
+            Note = e.Note,
+            Color = colors.TryGetValue(e.Category, out var color) ? color : "#21C3D6"
         }).ToList();
     }
 

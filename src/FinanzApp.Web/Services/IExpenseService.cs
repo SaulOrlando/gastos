@@ -6,6 +6,8 @@ public interface IExpenseService
 {
     Task<List<ExpenseListItemViewModel>> GetExpensesForMonthAsync(string userId, int year, int month, int? limit = null);
 
+    Task<List<ExpenseListItemViewModel>> GetAllExpensesAsync(string userId);
+
     Task<ExpenseFormViewModel?> GetExpenseForEditAsync(int id, string userId);
 
     Task CreateExpenseAsync(ExpenseFormViewModel model, string userId);

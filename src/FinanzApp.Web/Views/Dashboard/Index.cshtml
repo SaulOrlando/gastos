@@ -198,6 +198,9 @@ else
             const catLabels = @Html.Raw(Model.LabelsCategoriaJson);
             const catValues = @Html.Raw(Model.ValoresCategoriaJson);
             const catColors = @Html.Raw(Model.ColoresCategoriaJson);
+            const incomeCatLabels = @Html.Raw(Model.LabelsCategoriaIngresosJson);
+            const incomeCatValues = @Html.Raw(Model.ValoresCategoriaIngresosJson);
+            const incomeCatColors = @Html.Raw(Model.ColoresCategoriaIngresosJson);
             const dayLabels = @Html.Raw(Model.LabelsDiasJson);
             const dayValues = @Html.Raw(Model.ValoresDiasJson);
             const incomeDayValues = @Html.Raw(Model.ValoresIngresosDiasJson);
@@ -259,16 +262,16 @@ else
                 });
             }
 
-            // --- Donut: Ingresos ---
+            // --- Donut: Ingresos por categoría ---
             const incomeDonutCanvas = document.getElementById('incomeDonut');
-            if (incomeDonutCanvas) {
+            if (incomeDonutCanvas && incomeCatLabels.length > 0) {
                 new Chart(incomeDonutCanvas, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Ingresos'],
+                        labels: incomeCatLabels,
                         datasets: [{
-                            data: [totalIncome],
-                            backgroundColor: ['#004323'],
+                            data: incomeCatValues,
+                            backgroundColor: incomeCatColors,
                             borderWidth: 3,
                             borderColor: '#ffffff'
                         }]
@@ -279,7 +282,15 @@ else
                         cutout: '65%',
                         plugins: {
                             legend: { display: false },
-                            tooltip: { enabled: false }
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(0) : 0;
+                                        return ' ' + ctx.label + ': ' + ctx.parsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (' + pct + '%)';
+                                    }
+                                }
+                            }
                         }
                     },
                     plugins: [{

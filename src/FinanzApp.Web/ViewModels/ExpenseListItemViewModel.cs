@@ -11,4 +11,6 @@ public class ExpenseListItemViewModel
     public DateTime Date { get; set; }
 
     public string? Note { get; set; }
+
+    public string Color { get; set; } = "#21C3D6";
 }

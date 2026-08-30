@@ -32,6 +32,12 @@ public class DashboardViewModel
 
     public string ColoresCategoriaJson { get; set; } = "[]";
 
+    public string LabelsCategoriaIngresosJson { get; set; } = "[]";
+
+    public string ValoresCategoriaIngresosJson { get; set; } = "[]";
+
+    public string ColoresCategoriaIngresosJson { get; set; } = "[]";
+
     public string LabelsDiasJson { get; set; } = "[]";
 
     public string ValoresDiasJson { get; set; } = "[]";

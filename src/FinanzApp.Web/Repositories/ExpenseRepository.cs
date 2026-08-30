@@ -13,6 +13,16 @@ public class ExpenseRepository : IExpenseRepository
         _context = context;
     }
 
+    public Task<List<Expense>> GetAllByUserIdAsync(string userId)
+    {
+        return _context.Expenses
+            .AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .OrderByDescending(e => e.Date)
+            .ThenByDescending(e => e.CreatedAt)
+            .ToListAsync();
+    }
+
     public Task<List<Expense>> GetMonthlyExpensesAsync(string userId, int year, int month)
     {
         return _context.Expenses

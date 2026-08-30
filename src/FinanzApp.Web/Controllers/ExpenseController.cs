@@ -25,6 +25,69 @@ public class ExpenseController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> Index(int? year, int? month)
+    {
+        var user = await GetCurrentUserAsync();
+
+        if (user is null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var now = DateTime.UtcNow;
+        var targetYear = year ?? now.Year;
+        var targetMonth = month ?? now.Month;
+
+        var allExpenses = await _expenseService.GetAllExpensesAsync(user.Id);
+
+        var availableMonths = allExpenses
+            .GroupBy(e => new { e.Date.Year, e.Date.Month })
+            .OrderByDescending(g => g.Key.Year)
+            .ThenByDescending(g => g.Key.Month)
+            .Select(g => new ExpenseMonthNavItem
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                MonthName = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMMM yyyy"),
+                TotalExpenses = g.Sum(e => e.Amount),
+                IsSelected = g.Key.Year == targetYear && g.Key.Month == targetMonth
+            })
+            .ToList();
+
+        if (!availableMonths.Any(m => m.IsSelected))
+        {
+            availableMonths.Insert(0, new ExpenseMonthNavItem
+            {
+                Year = targetYear,
+                Month = targetMonth,
+                MonthName = new DateTime(targetYear, targetMonth, 1).ToString("MMMM yyyy"),
+                TotalExpenses = 0,
+                IsSelected = true
+            });
+        }
+
+        var monthExpenses = allExpenses
+            .Where(e => e.Date.Year == targetYear && e.Date.Month == targetMonth)
+            .OrderByDescending(e => e.Date)
+            .ToList();
+
+        var model = new ExpenseIndexViewModel
+        {
+            TotalExpenses = monthExpenses.Sum(e => e.Amount),
+            MonthName = new DateTime(targetYear, targetMonth, 1).ToString("MMMM yyyy"),
+            Year = targetYear,
+            Month = targetMonth,
+            IsCurrentMonth = targetYear == now.Year && targetMonth == now.Month,
+            CurrencySymbol = GetCurrencySymbol(user.Currency),
+            Categories = await _categoryService.GetForUserAsync(user.Id),
+            Expenses = monthExpenses,
+            AvailableMonths = availableMonths
+        };
+
+        return View(model);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Create(int? year, int? month)
     {
         var user = await GetCurrentUserAsync();
@@ -163,12 +226,12 @@ public class ExpenseController : Controller
             return NotFound();
         }
 
-        return RedirectToAction("Index", "Dashboard", new { year = existing?.Date.Year, month = existing?.Date.Month });
+        return RedirectToAction("Index", "Expense", new { year = existing?.Date.Year, month = existing?.Date.Month });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateCategory(string name)
+    public async Task<IActionResult> CreateCategory(string name, string color)
     {
         var user = await GetCurrentUserAsync();
 
@@ -177,7 +240,7 @@ public class ExpenseController : Controller
             return Json(new { success = false, message = "Debes iniciar sesión." });
         }
 
-        var result = await _categoryService.CreateAsync(name, user.Id);
+        var result = await _categoryService.CreateAsync(name, user.Id, color);
 
         if (!result.Success)
         {
@@ -188,13 +251,14 @@ public class ExpenseController : Controller
         {
             success = true,
             id = result.Category!.Id,
-            name = result.Category.Name
+            name = result.Category.Name,
+            color = result.Category.Color
         });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateCategory(int id, string name)
+    public async Task<IActionResult> UpdateCategory(int id, string name, string color)
     {
         var user = await GetCurrentUserAsync();
 
@@ -203,7 +267,7 @@ public class ExpenseController : Controller
             return Json(new { success = false, message = "Debes iniciar sesión." });
         }
 
-        var result = await _categoryService.UpdateAsync(id, name, user.Id);
+        var result = await _categoryService.UpdateAsync(id, name, user.Id, color);
 
         if (!result.Success)
         {
@@ -214,7 +278,8 @@ public class ExpenseController : Controller
         {
             success = true,
             id = result.Category!.Id,
-            name = result.Category.Name
+            name = result.Category.Name,
+            color = result.Category.Color
         });
     }
 

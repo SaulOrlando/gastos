@@ -8,13 +8,16 @@ public class IncomeService : IIncomeService
 {
     private readonly IIncomeRepository _incomeRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly ICategoryService _categoryService;
 
     public IncomeService(
         IIncomeRepository incomeRepository,
-        ICategoryRepository categoryRepository)
+        ICategoryRepository categoryRepository,
+        ICategoryService categoryService)
     {
         _incomeRepository = incomeRepository;
         _categoryRepository = categoryRepository;
+        _categoryService = categoryService;
     }
 
     public Task CreateIncomeAsync(IncomeFormViewModel model, string userId)
@@ -90,15 +93,7 @@ public class IncomeService : IIncomeService
     public async Task<List<IncomeListItemViewModel>> GetAllIncomesAsync(string userId)
     {
         var incomes = await _incomeRepository.GetAllByUserIdAsync(userId);
-
-        return incomes.Select(i => new IncomeListItemViewModel
-        {
-            Id = i.Id,
-            Amount = i.Amount,
-            Category = i.Category,
-            Date = i.Date,
-            Note = i.Note
-        }).ToList();
+        return await MapToListItemAsync(incomes, userId);
     }
 
     public async Task<List<IncomeListItemViewModel>> GetIncomesForMonthAsync(string userId, int year, int month, int? limit = null)
@@ -110,13 +105,21 @@ public class IncomeService : IIncomeService
             incomes = incomes.OrderByDescending(i => i.Date).Take(limit.Value).ToList();
         }
 
+        return await MapToListItemAsync(incomes, userId);
+    }
+
+    private async Task<List<IncomeListItemViewModel>> MapToListItemAsync(IEnumerable<Income> incomes, string userId)
+    {
+        var colors = await _categoryService.GetColorsByNamesAsync(userId);
+
         return incomes.Select(i => new IncomeListItemViewModel
         {
             Id = i.Id,
             Amount = i.Amount,
             Category = i.Category,
             Date = i.Date,
-            Note = i.Note
+            Note = i.Note,
+            Color = colors.TryGetValue(i.Category, out var color) ? color : "#21C3D6"
         }).ToList();
     }
 }

@@ -10,24 +10,20 @@ public class DashboardService : IDashboardService
 {
     private const int TrendDays = 30;
 
-    private static readonly Dictionary<string, string> CategoryColors = new()
-    {
-        ["Comida"] = "#475569",
-        ["Entretenimiento"] = "#f59e0b",
-        ["Otras"] = "#0d9488"
-    };
-
     private readonly IExpenseRepository _expenseRepository;
     private readonly IIncomeRepository _incomeRepository;
+    private readonly ICategoryService _categoryService;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public DashboardService(
         IExpenseRepository expenseRepository,
         IIncomeRepository incomeRepository,
+        ICategoryService categoryService,
         UserManager<ApplicationUser> userManager)
     {
         _expenseRepository = expenseRepository;
         _incomeRepository = incomeRepository;
+        _categoryService = categoryService;
         _userManager = userManager;
     }
 
@@ -43,9 +39,10 @@ public class DashboardService : IDashboardService
 
         var monthlyExpenses = await _expenseRepository.GetMonthlyExpensesAsync(userId, targetYear, targetMonth);
         var totalsByCategory = await _expenseRepository.GetTotalExpensesByCategoryAsync(userId, targetYear, targetMonth);
+        var monthlyIncomes = await _incomeRepository.GetMonthlyIncomesAsync(userId, targetYear, targetMonth);
+        var totalsByIncomeCategory = await _incomeRepository.GetTotalIncomesByCategoryAsync(userId, targetYear, targetMonth);
         var recentExpenses = await _expenseRepository.GetExpensesSinceAsync(userId, now.Date.AddDays(-(TrendDays - 1)));
         var recentIncomes = await _incomeRepository.GetIncomesSinceAsync(userId, now.Date.AddDays(-(TrendDays - 1)));
-        var monthlyIncomes = await _incomeRepository.GetMonthlyIncomesAsync(userId, targetYear, targetMonth);
 
         var endOfTargetMonth = new DateTime(targetYear, targetMonth, DateTime.DaysInMonth(targetYear, targetMonth), 23, 59, 59);
 
@@ -55,6 +52,8 @@ public class DashboardService : IDashboardService
 
         var totalIncomeUntil = await _incomeRepository.GetTotalIncomesUntilAsync(userId, endOfTargetMonth);
         var totalExpensesUntil = await _expenseRepository.GetTotalExpensesUntilAsync(userId, endOfTargetMonth);
+
+        var categoryColors = await _categoryService.GetColorsByNamesAsync(userId);
 
         return new DashboardViewModel
         {
@@ -72,7 +71,12 @@ public class DashboardService : IDashboardService
             ValoresCategoriaJson = JsonSerializer.Serialize(
                 totalsByCategory.Values.Select(v => Math.Round(v, 2)).ToArray()),
             ColoresCategoriaJson = JsonSerializer.Serialize(
-                totalsByCategory.Keys.Select(c => CategoryColors.TryGetValue(c, out var color) ? color : "#0ea5e9").ToArray()),
+                totalsByCategory.Keys.Select(c => categoryColors.TryGetValue(c, out var color) ? color : "#21C3D6").ToArray()),
+            LabelsCategoriaIngresosJson = JsonSerializer.Serialize(totalsByIncomeCategory.Keys.ToArray()),
+            ValoresCategoriaIngresosJson = JsonSerializer.Serialize(
+                totalsByIncomeCategory.Values.Select(v => Math.Round(v, 2)).ToArray()),
+            ColoresCategoriaIngresosJson = JsonSerializer.Serialize(
+                totalsByIncomeCategory.Keys.Select(c => categoryColors.TryGetValue(c, out var color) ? color : "#21C3D6").ToArray()),
             LabelsDiasJson = JsonSerializer.Serialize(BuildDayLabels(now)),
             ValoresDiasJson = JsonSerializer.Serialize(BuildDailyExpenseTotals(recentExpenses, now)),
             ValoresIngresosDiasJson = JsonSerializer.Serialize(BuildDailyIncomeTotals(recentIncomes, now))
